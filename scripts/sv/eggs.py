@@ -168,11 +168,7 @@ def main() -> int:
     }
 
     with serial.Serial(args.serial, 9600) as ser:
-        try:
-            run(vid=vid, ser=ser, initial='INITIAL', states=states)
-        except KeyboardInterrupt:
-            __import__('pdb').post_mortem()
-            raise
+        run(vid=vid, ser=ser, initial='INITIAL', states=states)
 
 
 if __name__ == '__main__':
