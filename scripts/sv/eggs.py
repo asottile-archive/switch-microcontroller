@@ -152,7 +152,7 @@ def main() -> int:
                     match_px(Point(y=420, x=536), Color(b=49, g=43, r=30)),
                     match_px(Point(y=364, x=209), Color(b=49, g=43, r=30)),
                 ),
-                do(Press('A'), Wait(.5)),
+                do(Press('A'), Wait(1)),
                 'MASH_A',
             ),
             (always_matches, do(), 'WAIT'),
