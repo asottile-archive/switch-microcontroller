@@ -10,6 +10,7 @@ import serial
 
 from scripts.engine import all_match
 from scripts.engine import always_matches
+from scripts.engine import any_match
 from scripts.engine import Color
 from scripts.engine import do
 from scripts.engine import getframe
@@ -253,7 +254,15 @@ def main() -> int:
         ),
         'RAID': (
             (
-                match_px(Point(y=361, x=740), Color(b=21, g=180, r=208)),
+                all_match(
+                    match_px(Point(y=353, x=630), Color(b=31, g=196, r=221)),
+                    match_text(
+                        'Battle',
+                        Point(y=353, x=629),
+                        Point(y=377, x=674),
+                        invert=False,
+                    ),
+                ),
                 do(Press('A'), Wait(.2)),
                 'RAID',
             ),
@@ -266,25 +275,42 @@ def main() -> int:
                 'RAID',
             ),
             (
-                match_px(Point(y=271, x=713), Color(b=31, g=183, r=200)),
+                all_match(
+                    match_px(Point(y=267, x=591), Color(b=46, g=200, r=213)),
+                    any_match(
+                        match_text(
+                            'Collision Course',
+                            Point(y=267, x=591),
+                            Point(y=290, x=693),
+                            invert=False,
+                        ),
+                        match_text(
+                            'Electro Drift',
+                            Point(y=268, x=591),
+                            Point(y=289, x=669),
+                            invert=False,
+                        ),
+                    ),
+                ),
                 do(Press('A'), Wait(.2)),
                 'RAID',
             ),
-            (
-                match_px(Point(y=79, x=410), Color(b=26, g=207, r=228)),
-                do(Press('A'), Wait(.2)),
-                'RAID',
-            ),
-            # TODO: match the catch pokemon text here instead of 3 pts
             (
                 all_match(
-                    *(
-                        match_px(p, Color(b=23, g=182, r=208))
-                        for p in (
-                            Point(y=402, x=678),
-                            Point(y=402, x=738),
-                            Point(y=402, x=748),
-                        )
+                    match_px(Point(y=98, x=435), Color(b=26, g=188, r=212)),
+                    match_px(Point(y=149, x=432), Color(b=34, g=181, r=213)),
+                ),
+                do(Press('A'), Wait(.2)),
+                'RAID',
+            ),
+            (
+                all_match(
+                    match_px(Point(y=393, x=627), Color(b=28, g=181, r=208)),
+                    match_text(
+                        'Catch',
+                        Point(y=393, x=627),
+                        Point(y=415, x=672),
+                        invert=False,
                     ),
                 ),
                 do(Wait(.5), Press('s'), Wait(.5), Press('A'), Wait(8)),

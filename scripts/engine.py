@@ -91,6 +91,12 @@ def all_match(*matchers: Matcher) -> Matcher:
     return all_match_impl
 
 
+def any_match(*matchers: Matcher) -> Matcher:
+    def any_match_impl(frame: numpy.ndarray) -> bool:
+        return any(matcher(frame) for matcher in matchers)
+    return any_match_impl
+
+
 def match_px(point: Point, *colors: Color) -> Matcher:
     def match_px_impl(frame: numpy.ndarray) -> bool:
         px = frame[point.norm(frame.shape)]
