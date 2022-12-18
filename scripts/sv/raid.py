@@ -82,8 +82,19 @@ def main() -> int:
         _, tp = max(((im == tp_im).mean(), fname) for fname, im in type_images)
         print(f'the type is {tp}')
 
-        # TODO: select pokemon based on type
-        Press('A')(vid, ser)
+        if tp in {
+                'electric.png', 'grass.png', 'ground.png', 'dragon.png',
+                'normal.png', 'ice.png', 'rock.png', 'steel.png', 'dark.png',
+        }:
+            do(
+                Press('s'), Wait(1),
+                Press('A'), Wait(5),
+                Press('s'), Wait(1), Press('a'), Wait(1),
+                Press('A'), Wait(1), Press('A'), Wait(5),
+                Press('w'), Wait(1), Press('A'),
+            )(vid, ser)
+        else:
+            Press('A')(vid, ser)
 
     def _raid_color_gone(frame: numpy.ndarray) -> bool:
         return not match_px(RAID_STRIPE_POS, raid_color)(frame)
