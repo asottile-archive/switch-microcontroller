@@ -183,6 +183,47 @@ def main() -> int:
                 'WAIT_FOR_RAID_SELECT',
             ),
             (
+                match_text(
+                    'Please try again later.',
+                    Point(y=241, x=224),
+                    Point(y=266, x=390),
+                    invert=True,
+                ),
+                do(
+                    Wait(1), Press('A'),
+                    Wait(2), Press('A'),
+                    Wait(1), Press('A'),
+                ),
+                'WAIT_FOR_RAID',
+            ),
+            (
+                match_text(
+                    'Please start again from the beginning.',
+                    Point(y=237, x=233),
+                    Point(y=257, x=517),
+                    invert=True,
+                ),
+                do(
+                    Wait(1), Press('A'),
+                    Wait(2), Press('A'),
+                    Wait(1), Press('A'),
+                ),
+                'WAIT_FOR_RAID',
+            ),
+            (
+                all_match(
+                    match_px(RAID_STRIPE_POS, Color(b=20, g=184, r=227)),
+                    match_text(
+                        'Even if you are victorious in this Tera Raid Battle,',
+                        Point(y=365, x=211),
+                        Point(y=387, x=551),
+                        invert=True,
+                    ),
+                ),
+                do(Wait(3), Press('A')),
+                'WAIT_FOR_RAID',
+            ),
+            (
                 match_px(
                     RAID_STRIPE_POS,
                     Color(b=211, g=108, r=153),  # violet
