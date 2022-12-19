@@ -9,8 +9,8 @@ from scripts.engine import Point
 
 def main() -> int:
     vid = cv2.VideoCapture(0)
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 768)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     pos = Point(y=-1, x=-1)
     start: Point | None = None

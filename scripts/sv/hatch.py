@@ -101,7 +101,7 @@ def main() -> int:
     states = {
         'INITIAL': (
             (
-                match_px(Point(y=399, x=696), Color(b=17, g=203, r=244)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
                 do(Press('Y'), Wait(5), tap_w, tap_s, Wait(.5)),
                 'REORIENT_INITIAL',
             ),
@@ -110,15 +110,15 @@ def main() -> int:
             (
                 match_text(
                     'Map',
-                    Point(y=60, x=136),
-                    Point(y=83, x=166),
+                    Point(y=90, x=226),
+                    Point(y=124, x=276),
                     invert=False,
                 ),
                 do(Press('A'), Wait(1)),
                 'REORIENT_INITIAL',
             ),
             (
-                match_px(Point(y=399, x=696), Color(b=17, g=203, r=244)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
                 do(
                     reorient,
                     # open menu
@@ -129,7 +129,7 @@ def main() -> int:
         ),
         'MENU': (
             (
-                match_px(Point(y=161, x=697), Color(b=28, g=183, r=209)),
+                match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
                 do(
                     # press A on boxes menu
                     Wait(1), Press('A'), Wait(3),
@@ -150,11 +150,11 @@ def main() -> int:
         'HATCH_5': (
             (
                 all_match(
-                    match_px(Point(y=361, x=558), Color(b=49, g=43, r=30)),
+                    match_px(Point(y=541, x=930), Color(b=49, g=43, r=30)),
                     match_text(
                         'Oh?',
-                        Point(y=364, x=212),
-                        Point(y=391, x=246),
+                        Point(y=546, x=353),
+                        Point(y=586, x=410),
                         invert=True,
                     ),
                 ),
@@ -167,9 +167,9 @@ def main() -> int:
         'HATCH_1': (
             (
                 all_match(
-                    match_px(Point(y=361, x=558), Color(b=49, g=43, r=30)),
-                    match_px(Point(y=416, x=222), Color(b=49, g=43, r=30)),
-                    match_px(Point(y=349, x=198), Color(b=37, g=202, r=241)),
+                    match_px(Point(y=541, x=930), Color(b=49, g=43, r=30)),
+                    match_px(Point(y=624, x=370), Color(b=49, g=43, r=30)),
+                    match_px(Point(y=523, x=330), Color(b=37, g=202, r=241)),
                 ),
                 do(Wait(1), Press('A'), Wait(5), egg_hatched),
                 'HATCH_5',
@@ -204,15 +204,15 @@ def main() -> int:
             (
                 match_text(
                     'Map',
-                    Point(y=60, x=136),
-                    Point(y=83, x=166),
+                    Point(y=90, x=226),
+                    Point(y=124, x=276),
                     invert=False,
                 ),
                 do(Press('A'), Wait(1)),
                 'REORIENT_HATCH',
             ),
             (
-                match_px(Point(y=399, x=696), Color(b=17, g=203, r=244)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
                 reorient,
                 'HATCH_5',
             ),

@@ -69,14 +69,14 @@ def main() -> int:
     states = {
         'INITIAL': (
             (
-                match_px(Point(y=399, x=696), Color(b=17, g=203, r=244)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
                 do(Press('X'), Wait(1), Press('d'), Wait(1)),
                 'MENU',
             ),
         ),
         'MENU': (
             (
-                match_px(Point(y=161, x=697), Color(b=28, g=183, r=209)),
+                match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
                 # press A on boxes menu
                 do(Wait(1), Press('A'), Wait(3)),
                 'RELEASE_BOX',

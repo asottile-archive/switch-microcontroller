@@ -46,7 +46,7 @@ def main() -> int:
     states = {
         'INITIAL': (
             (
-                match_px(Point(y=399, x=696), Color(b=17, g=203, r=244)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
                 do(
                     Wait(1),
                     # center camera
@@ -59,7 +59,7 @@ def main() -> int:
         ),
         'MENU': (
             (
-                match_px(Point(y=195, x=651), Color(b=30, g=185, r=210)),
+                match_px(Point(y=292, x=1085), Color(b=30, g=185, r=210)),
                 do(
                     # press A on picnic menu
                     Wait(1), Press('A'), Wait(10),
@@ -76,8 +76,8 @@ def main() -> int:
             (
                 match_text(
                     '25',
-                    Point(y=251, x=13),
-                    Point(y=269, x=35),
+                    Point(y=376, x=21),
+                    Point(y=403, x=58),
                     invert=True,
                 ),
                 do(
@@ -132,8 +132,8 @@ def main() -> int:
             (
                 match_text(
                     'You peeked inside the basket!',
-                    Point(y=364, x=212),
-                    Point(y=392, x=424),
+                    Point(y=546, x=353),
+                    Point(y=588, x=706),
                     invert=True,
                 ),
                 do(set_start, Wait(.1)),
@@ -148,9 +148,9 @@ def main() -> int:
         'MASH_A': (
             (
                 all_match(
-                    match_px(Point(y=419, x=211), Color(b=49, g=43, r=30)),
-                    match_px(Point(y=420, x=536), Color(b=49, g=43, r=30)),
-                    match_px(Point(y=364, x=209), Color(b=49, g=43, r=30)),
+                    match_px(Point(y=628, x=351), Color(b=49, g=43, r=30)),
+                    match_px(Point(y=630, x=893), Color(b=49, g=43, r=30)),
+                    match_px(Point(y=546, x=348), Color(b=49, g=43, r=30)),
                 ),
                 do(Press('A'), Wait(1)),
                 'MASH_A',

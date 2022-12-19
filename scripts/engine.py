@@ -59,7 +59,7 @@ class Point(NamedTuple):
         )
 
 
-NORM = Point(y=480, x=768)
+NORM = Point(y=720, x=1280)
 
 
 class Color(NamedTuple):
