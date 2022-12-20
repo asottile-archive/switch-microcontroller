@@ -183,26 +183,27 @@ def main() -> int:
                 ),
                 'WAIT_FOR_RAID_SELECT',
             ),
+
             (
-                match_text(
-                    'Please try again later.',
-                    Point(y=361, x=373),
-                    Point(y=399, x=650),
-                    invert=True,
-                ),
-                do(
-                    Wait(1), Press('A'),
-                    Wait(2), Press('A'),
-                    Wait(1), Press('A'),
-                ),
-                'WAIT_FOR_RAID',
-            ),
-            (
-                match_text(
-                    'Please start again from the beginning.',
-                    Point(y=355, x=388),
-                    Point(y=385, x=861),
-                    invert=True,
+                any_match(
+                    match_text(
+                        'Please try again later.',
+                        Point(y=361, x=326),
+                        Point(y=399, x=602),
+                        invert=True,
+                    ),
+                    match_text(
+                        'Please start again from the beginning.',
+                        Point(y=355, x=388),
+                        Point(y=385, x=861),
+                        invert=True,
+                    ),
+                    match_text(
+                        'Communication with the other Trainer was',
+                        Point(y=315, x=373),
+                        Point(y=349, x=906),
+                        invert=True,
+                    ),
                 ),
                 do(
                     Wait(1), Press('A'),
