@@ -193,6 +193,12 @@ def main() -> int:
                         invert=True,
                     ),
                     match_text(
+                        'Please try again later.',
+                        Point(y=362, x=375),
+                        Point(y=398, x=650),
+                        invert=True,
+                    ),
+                    match_text(
                         'Please start again from the beginning.',
                         Point(y=355, x=388),
                         Point(y=385, x=861),
