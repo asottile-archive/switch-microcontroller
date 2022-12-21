@@ -210,6 +210,12 @@ def main() -> int:
                         Point(y=349, x=906),
                         invert=True,
                     ),
+                    match_text(
+                        'Communication ended due to an error.',
+                        Point(y=331, x=393),
+                        Point(y=368, x=884),
+                        invert=True,
+                    ),
                 ),
                 do(
                     Wait(1), Press('A'),
