@@ -74,7 +74,7 @@ def main() -> int:
             do(Press('d'), Wait(.5))(vid, ser)
 
         do(
-            Press('-'), Wait(.5), *((Press('s'), Wait(.4)) * 4),
+            Press('-'), Wait(.5), Press('s', duration=.7), Wait(.4),
             Press('A'), Wait(.5),
         )(vid, ser)
 
@@ -134,7 +134,7 @@ def main() -> int:
                     # press A on boxes menu
                     Wait(1), Press('A'), Wait(3),
                     # select first column
-                    Press('-'), Wait(.5), *((Press('s'), Wait(.4)) * 4),
+                    Press('-'), Wait(.5), Press('s', duration=.7), Wait(.4),
                     Press('A'), Wait(.5),
                     # move it over
                     Press('a'), Wait(.4), Press('s'), Wait(.4),
@@ -184,7 +184,7 @@ def main() -> int:
                     Press('X'), Wait(2), Press('A'), Wait(3),
                     # select party to put it back
                     Press('a'), Wait(.5), Press('s'), Wait(.5),
-                    Press('-'), Wait(.5), *((Press('s'), Wait(.4)) * 4),
+                    Press('-'), Wait(.5), Press('s', duration=.7), Wait(.4),
                     Press('A'), Wait(.5),
                     # position in first column of box
                     Press('d'), Wait(.5), Press('w'), Wait(.5),
