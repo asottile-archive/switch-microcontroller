@@ -35,6 +35,11 @@ def main() -> int:
     column = 0
     eggs = 5
 
+    select = do(
+        Press('-'), Wait(.5), Press('s', duration=.8), Wait(.4),
+        Press('A'), Wait(.5),
+    )
+
     def eggs_done(frame: object) -> bool:
         return eggs == 0
 
@@ -73,10 +78,7 @@ def main() -> int:
             column += 1
             do(Press('d'), Wait(.5))(vid, ser)
 
-        do(
-            Press('-'), Wait(.5), Press('s', duration=.7), Wait(.4),
-            Press('A'), Wait(.5),
-        )(vid, ser)
+        select(vid, ser)
 
         for _ in range(column + 1):
             do(Press('a'), Wait(.4))(vid, ser)
@@ -134,8 +136,7 @@ def main() -> int:
                     # press A on boxes menu
                     Wait(1), Press('A'), Wait(3),
                     # select first column
-                    Press('-'), Wait(.5), Press('s', duration=.7), Wait(.4),
-                    Press('A'), Wait(.5),
+                    select,
                     # move it over
                     Press('a'), Wait(.4), Press('s'), Wait(.4),
                     Press('A'), Wait(.5),
@@ -158,7 +159,7 @@ def main() -> int:
                         invert=True,
                     ),
                 ),
-                do(Press('A'), Wait(10)),
+                do(Press('A'), Wait(15)),
                 'HATCH_1',
             ),
             (eggs_done, clear_left, 'NEXT_COLUMN'),
@@ -184,8 +185,7 @@ def main() -> int:
                     Press('X'), Wait(2), Press('A'), Wait(3),
                     # select party to put it back
                     Press('a'), Wait(.5), Press('s'), Wait(.5),
-                    Press('-'), Wait(.5), Press('s', duration=.7), Wait(.4),
-                    Press('A'), Wait(.5),
+                    select,
                     # position in first column of box
                     Press('d'), Wait(.5), Press('w'), Wait(.5),
                     # put the hatched ones back and pick up new column
