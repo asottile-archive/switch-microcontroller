@@ -38,7 +38,7 @@ def main() -> int:
                 Press('A'), Wait(.75),
                 Press('w'), Wait(.75),
                 Press('w'), Wait(.75),
-                Press('A'), Wait(.75),
+                Press('A'), Wait(1),
                 Press('w'), Wait(.75),
                 Press('A'), Wait(2),
                 Press('A'), Wait(.75),
