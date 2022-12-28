@@ -69,16 +69,32 @@ def main() -> int:
         egg_count = 0
 
     def restart_eggs(frame: object) -> bool:
-        return time.monotonic() > start_time + 30 * 60
+        return time.monotonic() > start_time + 30 * 60       
 
-    def is_shiny_detected(frame: object) -> bool:
-        # not sure of exact timing right now ...
-        return time.monotonic() >= shiny_timer + 12.5
+    def is_shiny_detected() -> bool:
+        shiny_time = time.monotonic()
+        print(f'DEBUG: timing is at {shiny_time - shiny_timer} seconds')
+        return shiny_time >= shiny_timer + 13.75
 
-    def set_shiny(vid: object, ser: object) -> None:
+    def set_shiny(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         nonlocal shiny
         shiny = is_shiny_detected()
-        if shiny: print('DEBUG: *****SHINY DETECTED!*****')
+        if shiny: 
+            # alarm
+            do(Press('!'),
+            Wait(1),
+            Press('.'),
+            Wait(.5),
+            Press('!'),
+            Wait(1),
+            Press('.'),
+            Wait(.5),
+            Press('!'),
+            Wait(1),
+            Press('.'),
+            Wait(.5),
+            )(vid, ser)
+            print('DEBUG: *****SHINY DETECTED!*****')
 
     def are_we_done(frame: object) -> bool:
         return egg_count >= args.boxes * 30
@@ -134,8 +150,8 @@ def main() -> int:
 
         do(Press('s'), Wait(.4), Press('A'), Wait(.5))(vid, ser)
 
-    def done(frame: object) -> bool:
-        return box == args.boxes - 1 and column == 5 and eggs == 0
+    def hatched_all_eggs(frame: object) -> bool:
+        return box == args.boxes - 1 and column == 5 and eggs == 0 and not shiny
 
     reorient = do(
         Wait(1),
@@ -403,7 +419,8 @@ def main() -> int:
             ),
         ),
         'NEXT_COLUMN': (
-            (done, bye, 'INITIAL_HATCH'),
+            # (lambda : shiny, do(), 'RESTART_SEQUENCE'),
+            (hatched_all_eggs, bye, 'INITIAL_HATCH'),
             (
                 always_matches,
                 do(
@@ -446,7 +463,7 @@ def main() -> int:
         ),
         'RESET_SEQUENCE': (
             (
-                not shiny, 
+                lambda : not shiny, 
                 do(
                     # hard reset the game if no shines
                     Press('H'), Wait(1),
