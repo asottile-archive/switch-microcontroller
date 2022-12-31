@@ -192,7 +192,7 @@ def main() -> int:
                     move_to_column, Press('A'), Wait(.5),
                     pick_up_new_column,
                     # out to main menu
-                    Press('B'), Wait(2),
+                    Press('B'), Wait(4),
                     Press('B'), Wait(1),
                     # reorient for next batch
                     Press('Y'), Wait(5), tap_w, tap_s, Wait(.5),
