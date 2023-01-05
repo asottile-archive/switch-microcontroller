@@ -76,7 +76,7 @@ def main() -> int:
         ),
         'MENU': (
             (
-                match_px(Point(y=241, x=1161), Color(b=0, g=204, r=255)),
+                match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
                 # press A on boxes menu
                 do(Wait(1), Press('A'), Wait(3)),
                 'RELEASE_BOX',

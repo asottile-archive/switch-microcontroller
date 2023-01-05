@@ -46,7 +46,7 @@ def main() -> int:
     states = {
         'INITIAL': (
             (
-                match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
                 do(
                     Wait(1),
                     # center camera

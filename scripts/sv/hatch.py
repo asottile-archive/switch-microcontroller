@@ -100,21 +100,11 @@ def main() -> int:
         Press('L'), Wait(.1),
     )
 
-    tap_all_directions = do(
-        Press('d'), Wait(.5), 
-        Press('a'), Wait(.5),
-        Press('w'), Wait(.5),
-        Press('s'), Wait(.5), 
-    )
-
     states = {
         'INITIAL': (
             (
-                match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
-                do(Press('Y'), Wait(5),
-                # do the wiggle wiggle
-                tap_all_directions,
-                Press('l'), Wait(1), Wait(.5), Wait(.5)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
+                do(Press('Y'), Wait(5), tap_w, tap_s, Wait(.5)),
                 'REORIENT_INITIAL',
             ),
         ),
@@ -126,11 +116,11 @@ def main() -> int:
                     Point(y=124, x=276),
                     invert=False,
                 ),
-                do(Press('A'), Wait(.1)),
+                do(Press('A'), Wait(1)),
                 'REORIENT_INITIAL',
             ),
             (
-                match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
                 do(
                     reorient,
                     # open menu
@@ -141,7 +131,7 @@ def main() -> int:
         ),
         'MENU': (
             (
-                match_px(Point(y=234, x=1151), Color(b=0, g=204, r=255)),
+                match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
                 do(
                     # press A on boxes menu
                     Wait(1), Press('A'), Wait(3),
@@ -205,7 +195,7 @@ def main() -> int:
                     Press('B'), Wait(4),
                     Press('B'), Wait(1),
                     # reorient for next batch
-                    Press('Y'), Wait(5), tap_w, tap_s, Wait(.5), Press('l'), Wait(.5)
+                    Press('Y'), Wait(5), tap_w, tap_s, Wait(.5),
                 ),
                 'REORIENT_HATCH',
             ),
@@ -218,11 +208,11 @@ def main() -> int:
                     Point(y=124, x=276),
                     invert=False,
                 ),
-                do(Press('A'), Wait(.1)),
+                do(Press('A'), Wait(1)),
                 'REORIENT_HATCH',
             ),
             (
-                match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
                 reorient,
                 'HATCH_5',
             ),
