@@ -10,6 +10,7 @@ import numpy
 import serial
 
 from scripts.engine import all_match
+from scripts.engine import any_match
 from scripts.engine import always_matches
 from scripts.engine import Color
 from scripts.engine import do
@@ -252,7 +253,10 @@ def main() -> int:
     states = {
         'INITIAL': (
             (
-                match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                any_match(
+                    match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
+                    match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                ),
                 do(
                     Wait(1),
                     # center camera
@@ -265,7 +269,10 @@ def main() -> int:
         ),
         'MENU': (
             (
-                match_px(Point(y=288, x=1027), Color(b=0, g=204, r=255)),
+                any_match(
+                    match_px(Point(y=292, x=1085), Color(b=30, g=185, r=210)),
+                    match_px(Point(y=288, x=1027), Color(b=0, g=204, r=255)),
+                ),
                 do(
                     # press A on picnic menu
                     Wait(1), Press('A'), Wait(10),
@@ -398,7 +405,10 @@ def main() -> int:
 
         'MENU_SWITCH': (
             (
-                match_px(Point(y=234, x=1151), Color(b=0, g=204, r=255)),
+                any_match(
+                    match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
+                    match_px(Point(y=234, x=1151), Color(b=0, g=204, r=255)),
+                ),
                 do(
                     # press A on boxes
                     Wait(1), Press('A'), Wait(3),
@@ -424,7 +434,10 @@ def main() -> int:
 
         'INITIAL_HATCH': (
             (
-                match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                any_match(
+                    match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
+                    match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                ),
                 do(Press('Y'), Wait(5),
                 # do the wiggle wiggle
                 tap_all_directions,
@@ -444,7 +457,10 @@ def main() -> int:
                 'REORIENT_INITIAL',
             ),
             (
-                match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                any_match(
+                    match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
+                    match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                ),
                 do(
                     reorient,
                     # open menu
@@ -455,7 +471,10 @@ def main() -> int:
         ),
         'MENU_HATCH': (
             (
-                match_px(Point(y=234, x=1151), Color(b=0, g=204, r=255)),
+                any_match(
+                    match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
+                    match_px(Point(y=234, x=1151), Color(b=0, g=204, r=255)),
+                ),
                 do(
                    # press A on boxes menu
                     Wait(1), Press('A'), Wait(3),
@@ -528,14 +547,21 @@ def main() -> int:
                     # put the hatched ones back and pick up new column
                     move_to_column, Press('A'), Wait(.5),
                     pick_up_new_column,
-                    # out to main menu
-                    Press('B'), Wait(3),
-                    Press('B'), Wait(3),
-                    # reorient for next batch
-                    Press('Y'), Wait(5), tap_w, tap_s, Wait(.5), Press('l'), Wait(.5)
+
                 ),
+                'TO_OVERWORLD',
+            ),
+        ),
+        'TO_OVERWORLD': (
+            (
+                any_match(
+                    match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
+                    match_px(Point(y=598, x=1160), Color(b=0, g=205, r=255)),
+                ),
+                do(Press('Y'), Wait(5), tap_w, tap_s, Wait(.5)),
                 'REORIENT_HATCH',
             ),
+            (always_matches, do(Press('B'), Wait(1)), 'TO_OVERWORLD'),
         ),
         'REORIENT_HATCH': (
             (
@@ -556,7 +582,10 @@ def main() -> int:
         ),
         'CHECK_SHINY_MENU': (
             (
-                match_px(Point(y=241, x=1161), Color(b=0, g=204, r=255)),
+                any_match(
+                    match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
+                    match_px(Point(y=234, x=1151), Color(b=0, g=204, r=255)),
+                ),
                 # press A on boxes menu
                 do(Wait(1), Press('A'), Wait(3), 
                 # action to make sure wallpaper shows up
