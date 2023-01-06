@@ -56,9 +56,6 @@ def main() -> int:
     def start_left(vid: object, ser: serial.Serial) -> None:
         ser.write(b'#')
 
-    def clear_left(vid: object, ser: serial.Serial) -> None:
-        ser.write(b'0')
-
     def move_to_column(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         for _ in range(column):
             do(Press('d'), Wait(.4))(vid, ser)
@@ -162,19 +159,16 @@ def main() -> int:
                 do(Press('A'), Wait(15)),
                 'HATCH_1',
             ),
-            (eggs_done, clear_left, 'NEXT_COLUMN'),
+            (eggs_done, Wait(3), 'NEXT_COLUMN'),
             (always_matches, do(start_left, Wait(1)), 'HATCH_5'),
         ),
         'HATCH_1': (
             (
-                all_match(
-                    match_px(Point(y=541, x=930), Color(b=49, g=43, r=30)),
-                    match_px(Point(y=624, x=370), Color(b=49, g=43, r=30)),
-                    match_px(Point(y=523, x=330), Color(b=37, g=202, r=241)),
-                ),
-                do(Wait(1), Press('A'), Wait(5), egg_hatched),
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
+                egg_hatched,
                 'HATCH_5',
             ),
+            (always_matches, do(Press('A'), Wait(1)), 'HATCH_1'),
         ),
         'NEXT_COLUMN': (
             (done, bye, 'INITIAL'),
