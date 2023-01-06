@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import argparse
-import functools
-import os.path
 import time
 
 import cv2
-import numpy
 import serial
 
 from scripts.engine import all_match
@@ -169,43 +166,16 @@ def main() -> int:
         eggs = 5
         print('DEBUG: REACHED RESTART')
 
-    def _extract_shiny_icon(
-        im: numpy.ndarray,
-        dims: tuple[int, int, int],
-        ) -> numpy.ndarray:
-            im = cv2.resize(im, (dims[1], dims[0]))
-
-            top_left = Point(y=60, x=1112).norm(dims)
-            bottom_right = Point(y=92, x=1163).norm(dims)
-            crop = im[top_left.y:bottom_right.y, top_left.x:bottom_right.x]
-
-            color = numpy.array([71, 51, 39])
-            t = numpy.array([1, 1, 1])
-            return cv2.inRange(crop, color - t * 20, color + t * 20)
-
-    @functools.lru_cache
-    def _get_shiny_images(
-            dims: tuple[int, int, int],
-    ) -> tuple[tuple[str, numpy.ndarray], ...]:
-        types_dir = os.path.join(os.path.dirname(__file__), 'shiny_check_images')
-
-        return tuple(
-            (tp, _extract_shiny_icon(cv2.imread(os.path.join(types_dir, tp)), dims))
-            for tp in os.listdir(types_dir)
-        )
-
     def check_shiny(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         nonlocal check_box
 
         def _detect_shiny() -> None:
+            match_px(Point(y=78, x=1139), Color(b=248, g=250, r=255))
+
             frame = getframe(vid)
-
-            shiny_images = _get_shiny_images(frame.shape)
-
-            sh_im = _extract_shiny_icon(frame, frame.shape)
-            _, sh = max(((im == sh_im).mean(), fname) for fname, im in shiny_images)
-            print(f'{sh}')
-            if sh == 'shiny.png':
+            # check for white pixel of shiny icon
+            print(f'DEBUG: Shiny? -- {match_px(Point(y=78, x=1139), Color(b=253, g=255, r=255))(frame)}')
+            if match_px(Point(y=78, x=1139), Color(b=253, g=255, r=255))(frame):
                 set_shiny()
 
         for direction in 'dadad':
