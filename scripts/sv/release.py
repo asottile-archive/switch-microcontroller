@@ -36,10 +36,10 @@ def main() -> int:
         def _release() -> None:
             do(
                 Press('A'), Wait(.75),
-                Press('w'), Wait(.75),
-                Press('w'), Wait(.75),
+                Press('w'), Wait(.25),
+                Press('w'), Wait(.25),
                 Press('A'), Wait(1),
-                Press('w'), Wait(.75),
+                Press('w'), Wait(.25),
                 Press('A'), Wait(2),
                 Press('A'), Wait(.75),
             )(vid, ser)
@@ -47,14 +47,14 @@ def main() -> int:
         for direction in 'dadad':
             _release()
             for _ in range(5):
-                do(Press(direction), Wait(1))(vid, ser)
+                do(Press(direction), Wait(.25))(vid, ser)
                 _release()
-            do(Press('s'), Wait(.75))(vid, ser)
+            do(Press('s'), Wait(.25))(vid, ser)
 
         for _ in range(2):
-            do(Press('s'), Wait(.75))(vid, ser)
+            do(Press('s'), Wait(.25))(vid, ser)
         for _ in range(5):
-            do(Press('a'), Wait(.75))(vid, ser)
+            do(Press('a'), Wait(.25))(vid, ser)
 
         do(Press('R'), Wait(.75))(vid, ser)
         box += 1

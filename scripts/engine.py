@@ -28,7 +28,7 @@ def getframe(vid: cv2.VideoCapture) -> numpy.ndarray:
     return frame
 
 
-def press(ser: serial.Serial, s: str, duration: float = .05) -> None:
+def press(ser: serial.Serial, s: str, duration: float) -> None:
     print(f'{s=} {duration=}')
     ser.write(s.encode())
     time.sleep(duration)
@@ -154,7 +154,7 @@ def do(*actions: Action) -> Action:
 
 class Press(NamedTuple):
     button: str
-    duration: float = .05
+    duration: float = .1
 
     def __call__(self, vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         press(ser, self.button, duration=self.duration)
