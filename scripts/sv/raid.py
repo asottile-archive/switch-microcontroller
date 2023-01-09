@@ -187,6 +187,12 @@ def main() -> int:
             (
                 any_match(
                     match_text(
+                        'An error has occurred.',
+                        Point(y=239, x=329),
+                        Point(y=276, x=614),
+                        invert=True,
+                    ),
+                    match_text(
                         'Please try again later.',
                         Point(y=361, x=326),
                         Point(y=399, x=602),
