@@ -9,6 +9,7 @@ from scripts.engine import all_match
 from scripts.engine import always_matches
 from scripts.engine import Color
 from scripts.engine import do
+from scripts.engine import getframe
 from scripts.engine import match_px
 from scripts.engine import match_text
 from scripts.engine import Point
@@ -35,10 +36,17 @@ def main() -> int:
     column = 0
     eggs = 5
 
-    select = do(
-        Press('-'), Wait(.5), Press('s', duration=.8), Wait(.4),
-        Press('A'), Wait(.5),
-    )
+    def select(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+        selectable = match_text(
+            'Draw Selection Box',
+            Point(y=679, x=762),
+            Point(y=703, x=909),
+            invert=True,
+        )
+        while selectable(getframe(vid)):
+            do(Press('-'), Wait(.5))(vid, ser)
+
+        do(Press('s', duration=.8), Wait(.4), Press('A'), Wait(.5))(vid, ser)
 
     def eggs_done(frame: object) -> bool:
         return eggs == 0
@@ -50,8 +58,19 @@ def main() -> int:
     def start_left(vid: object, ser: serial.Serial) -> None:
         ser.write(b'#')
 
+    def to_party_pos_1(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+        slot_1 = match_px(Point(y=163, x=250), Color(b=22, g=198, r=229))
+        while not slot_1(getframe(vid)):
+            do(Press('a'), Wait(.4))(vid, ser)
+
+        slot_2 = match_px(Point(y=255, x=248), Color(b=22, g=198, r=229))
+        while not slot_2(getframe(vid)):
+            do(Press('s'), Wait(.4))(vid, ser)
+
     def move_to_column(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
-        for _ in range(column):
+        x = 372 + 84 * column
+        m = match_px(Point(y=169, x=x), Color(b=42, g=197, r=213))
+        while not m(getframe(vid)):
             do(Press('d'), Wait(.4))(vid, ser)
 
     def pick_up_new_column(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
@@ -60,21 +79,17 @@ def main() -> int:
         if column == 5:
             column = 0
             box += 1
-            do(
-                Press('R'), Wait(.5),
-                Press('d'), Wait(.4),
-                Press('d'), Wait(.4),
-            )(vid, ser)
+            do(Press('R'), Wait(.5))(vid, ser)
         else:
             column += 1
-            do(Press('d'), Wait(.5))(vid, ser)
+
+        move_to_column(vid, ser)
 
         select(vid, ser)
 
-        for _ in range(column + 1):
-            do(Press('a'), Wait(.4))(vid, ser)
+        to_party_pos_1(vid, ser)
 
-        do(Press('s'), Wait(.4), Press('A'), Wait(.5))(vid, ser)
+        do(Press('A'), Wait(.5))(vid, ser)
 
     def done(frame: object) -> bool:
         return box == args.boxes - 1 and column == 5 and eggs == 0
@@ -129,7 +144,7 @@ def main() -> int:
                     # select first column
                     select,
                     # move it over
-                    Press('a'), Wait(.4), Press('s'), Wait(.4),
+                    to_party_pos_1,
                     Press('A'), Wait(.5),
                     # out to main menu
                     Press('B'), Wait(2),
@@ -172,7 +187,7 @@ def main() -> int:
                     # open menu, into boxes
                     Press('X'), Wait(2), Press('A'), Wait(3),
                     # select party to put it back
-                    Press('a'), Wait(.5), Press('s'), Wait(.5),
+                    to_party_pos_1,
                     select,
                     # position in first column of box
                     Press('d'), Wait(.5), Press('w'), Wait(.5),
