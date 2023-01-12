@@ -59,8 +59,11 @@ def main() -> int:
             )
 
         cv2.imshow('game', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
             raise SystemExit(0)
+        elif key == ord('s'):
+            cv2.imwrite('screen.png', frame)
 
     return 0
 
