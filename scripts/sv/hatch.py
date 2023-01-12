@@ -47,12 +47,6 @@ def main() -> int:
         nonlocal eggs
         eggs -= 1
 
-    def tap_w(vid: object, ser: serial.Serial) -> None:
-        ser.write(b'w0')
-
-    def tap_s(vid: object, ser: serial.Serial) -> None:
-        ser.write(b's0')
-
     def start_left(vid: object, ser: serial.Serial) -> None:
         ser.write(b'#')
 
@@ -101,7 +95,7 @@ def main() -> int:
         'INITIAL': (
             (
                 match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
-                do(Press('Y'), Wait(5), tap_w, tap_s, Wait(.5)),
+                do(Press('Y'), Wait(5), Press('$'), Wait(.5)),
                 'REORIENT_INITIAL',
             ),
         ),
@@ -192,7 +186,7 @@ def main() -> int:
         'TO_OVERWORLD': (
             (
                 match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
-                do(Press('Y'), Wait(5), tap_w, tap_s, Wait(.5)),
+                do(Press('Y'), Wait(5), Press('$'), Wait(.5)),
                 'REORIENT_HATCH',
             ),
             (always_matches, do(Press('B'), Wait(1)), 'TO_OVERWORLD'),
