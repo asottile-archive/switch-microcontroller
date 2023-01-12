@@ -166,7 +166,7 @@ def main() -> int:
                         invert=True,
                     ),
                 ),
-                do(Wait(.5), Press('B'), Wait(.5), Press('A')),
+                do(Wait(.5), Press('A'), Wait(.5), Press('A')),
                 'WAIT_FOR_RAID',
             ),
             (
