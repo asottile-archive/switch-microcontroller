@@ -59,13 +59,17 @@ def main() -> int:
         ser.write(b'#')
 
     def to_party_pos_1(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
-        slot_1 = match_px(Point(y=163, x=250), Color(b=22, g=198, r=229))
-        while not slot_1(getframe(vid)):
+        col_1_0 = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
+        while not col_1_0(getframe(vid)):
             do(Press('a'), Wait(.4))(vid, ser)
 
-        slot_2 = match_px(Point(y=255, x=248), Color(b=22, g=198, r=229))
-        while not slot_2(getframe(vid)):
+        col_1_1 = match_px(Point(y=251, x=366), Color(b=47, g=189, r=220))
+        while not col_1_1(getframe(vid)):
             do(Press('s'), Wait(.4))(vid, ser)
+
+        party_pos_1 = match_px(Point(y=255, x=248), Color(b=22, g=198, r=229))
+        while not party_pos_1(getframe(vid)):
+            do(Press('a'), Wait(.4))(vid, ser)
 
     def move_to_column(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         x = 372 + 84 * column
