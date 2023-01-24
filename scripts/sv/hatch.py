@@ -18,6 +18,7 @@ from scripts.engine import require_tesseract
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import Wait
+from scripts.engine import Write
 
 
 def main() -> int:
@@ -54,9 +55,6 @@ def main() -> int:
     def egg_hatched(vid: object, ser: object) -> None:
         nonlocal eggs
         eggs -= 1
-
-    def start_left(vid: object, ser: serial.Serial) -> None:
-        ser.write(b'#')
 
     def to_party_pos_1(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         col_1_0 = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
@@ -187,7 +185,7 @@ def main() -> int:
                 ),
                 'TO_OVERWORLD',
             ),
-            (always_matches, do(start_left, Wait(1)), 'HATCH_5'),
+            (always_matches, do(Write('#'), Wait(1)), 'HATCH_5'),
         ),
         'HATCH_1': (
             (

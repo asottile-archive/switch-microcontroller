@@ -160,6 +160,13 @@ class Press(NamedTuple):
         press(ser, self.button, duration=self.duration)
 
 
+class Write(NamedTuple):
+    button: str
+
+    def __call__(self, vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+        ser.write(self.button.encode())
+
+
 class Wait(NamedTuple):
     d: float
 
