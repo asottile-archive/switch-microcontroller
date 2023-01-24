@@ -87,6 +87,10 @@ def main() -> int:
         else:
             column += 1
 
+        if box == args.boxes and column == 0:
+            raise SystemExit(0)
+        print(f'box={box + 1} column={column + 1}')
+
         move_to_column(vid, ser)
 
         select(vid, ser)
@@ -94,12 +98,6 @@ def main() -> int:
         to_party_pos_1(vid, ser)
 
         do(Press('A'), Wait(.5))(vid, ser)
-
-    def done(frame: object) -> bool:
-        return box == args.boxes - 1 and column == 5 and eggs == 0
-
-    def bye(vid: object, ser: object) -> None:
-        raise SystemExit(0)
 
     reorient = do(
         Wait(1),
@@ -172,22 +170,10 @@ def main() -> int:
                 do(Press('A'), Wait(15)),
                 'HATCH_1',
             ),
-            (eggs_done, Wait(3), 'NEXT_COLUMN'),
-            (always_matches, do(start_left, Wait(1)), 'HATCH_5'),
-        ),
-        'HATCH_1': (
             (
-                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
-                egg_hatched,
-                'HATCH_5',
-            ),
-            (always_matches, do(Press('A'), Wait(1)), 'HATCH_1'),
-        ),
-        'NEXT_COLUMN': (
-            (done, bye, 'INITIAL'),
-            (
-                always_matches,
+                eggs_done,
                 do(
+                    Wait(3),
                     # open menu, into boxes
                     Press('X'), Wait(2), Press('A'), Wait(3),
                     # select party to put it back
@@ -201,6 +187,15 @@ def main() -> int:
                 ),
                 'TO_OVERWORLD',
             ),
+            (always_matches, do(start_left, Wait(1)), 'HATCH_5'),
+        ),
+        'HATCH_1': (
+            (
+                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
+                egg_hatched,
+                'HATCH_5',
+            ),
+            (always_matches, do(Press('A'), Wait(1)), 'HATCH_1'),
         ),
         'TO_OVERWORLD': (
             (
