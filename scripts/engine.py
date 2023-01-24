@@ -145,6 +145,10 @@ def match_text(
     return match_text_impl
 
 
+def bye(vid: object, ser: object) -> None:
+    raise SystemExit(0)
+
+
 def do(*actions: Action) -> Action:
     def do_impl(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         for action in actions:

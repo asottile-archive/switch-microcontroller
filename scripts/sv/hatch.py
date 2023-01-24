@@ -3,12 +3,15 @@ from __future__ import annotations
 import argparse
 
 import cv2
+import numpy
 import serial
 
 from scripts.engine import all_match
 from scripts.engine import always_matches
+from scripts.engine import bye
 from scripts.engine import Color
 from scripts.engine import do
+from scripts.engine import get_text
 from scripts.engine import getframe
 from scripts.engine import match_px
 from scripts.engine import match_text
@@ -37,18 +40,6 @@ def main() -> int:
     column = 0
     eggs = 5
 
-    def select(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
-        selectable = match_text(
-            'Draw Selection Box',
-            Point(y=679, x=762),
-            Point(y=703, x=909),
-            invert=True,
-        )
-        while selectable(getframe(vid)):
-            do(Press('-'), Wait(.5))(vid, ser)
-
-        do(Press('s', duration=.8), Wait(.4), Press('A'), Wait(.5))(vid, ser)
-
     def eggs_done(frame: object) -> bool:
         return eggs == 0
 
@@ -56,65 +47,150 @@ def main() -> int:
         nonlocal eggs
         eggs -= 1
 
-    def to_party_pos_1(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
-        col_1_0 = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
-        while not col_1_0(getframe(vid)):
-            do(Press('a'), Wait(.4))(vid, ser)
-
-        col_1_1 = match_px(Point(y=251, x=366), Color(b=47, g=189, r=220))
-        while not col_1_1(getframe(vid)):
-            do(Press('s'), Wait(.4))(vid, ser)
-
-        party_pos_1 = match_px(Point(y=255, x=248), Color(b=22, g=198, r=229))
-        while not party_pos_1(getframe(vid)):
-            do(Press('a'), Wait(.4))(vid, ser)
-
-    def move_to_column(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+    def column_matches(frame: numpy.ndarray) -> bool:
         x = 372 + 84 * column
-        m = match_px(Point(y=169, x=x), Color(b=42, g=197, r=213))
-        while not m(getframe(vid)):
-            do(Press('d'), Wait(.4))(vid, ser)
+        return match_px(Point(y=169, x=x), Color(b=42, g=197, r=213))(frame)
 
-    def pick_up_new_column(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+    def multiselect_matches(frame: numpy.ndarray) -> bool:
+        x = 300 + 84 * column
+        return match_px(Point(y=133, x=x), Color(b=38, g=193, r=226))(frame)
+
+    def column_done(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         nonlocal box, column, eggs
         eggs = 5
         if column == 5:
             column = 0
             box += 1
-            do(Press('R'), Wait(.5))(vid, ser)
         else:
             column += 1
 
-        if box == args.boxes and column == 0:
-            raise SystemExit(0)
         print(f'box={box + 1} column={column + 1}')
 
-        move_to_column(vid, ser)
+    def all_done(frame: object) -> bool:
+        return box == args.boxes
 
-        select(vid, ser)
+    def box_done(frame: object) -> bool:
+        return column == 0
 
-        to_party_pos_1(vid, ser)
+    box_name = 'unknown'
 
-        do(Press('A'), Wait(.5))(vid, ser)
+    def get_box(vid: cv2.VideoCapture, ser: object) -> None:
+        nonlocal box_name
+        box_name = get_text(
+            getframe(vid),
+            Point(y=85, x=448),
+            Point(y=114, x=708),
+            invert=True,
+        )
 
-    reorient = do(
-        Wait(1),
-        Press('+'), Wait(1),
-        Press('z'), Wait(.5), Press('L'), Wait(.5),
-        Press('w', duration=2.5),
-        # center camera
-        Press('L'), Wait(.1),
+    def next_box_matches(frame: numpy.ndarray) -> bool:
+        return not match_text(
+            box_name,
+            Point(y=85, x=448),
+            Point(y=114, x=708),
+            invert=True,
+        )(frame)
+
+    world_matches = match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244))
+    boxes_matches = match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209))
+    pos0_matches = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
+    pos1_matches = match_px(Point(y=251, x=366), Color(b=47, g=189, r=220))
+    sel_text_matches = match_text(
+        'Draw Selection Box',
+        Point(y=679, x=762),
+        Point(y=703, x=909),
+        invert=True,
     )
 
     states = {
         'INITIAL': (
+            (world_matches, do(Press('X'), Wait(1)), 'INITIAL'),
             (
-                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
-                do(Press('Y'), Wait(5), Press('$'), Wait(.5)),
-                'REORIENT_INITIAL',
+                match_text(
+                    'MAIN MENU',
+                    Point(y=116, x=888),
+                    Point(y=147, x=1030),
+                    invert=True,
+                ),
+                do(),
+                'MENU_MOVE_RIGHT',
             ),
         ),
-        'REORIENT_INITIAL': (
+        'MENU_MOVE_RIGHT': (
+            (
+                match_px(Point(y=156, x=390), Color(b=31, g=190, r=216)),
+                do(Press('d'), Wait(.5)),
+                'MENU_MOVE_RIGHT',
+            ),
+            (always_matches, do(), 'MENU_FIND_BOXES'),
+        ),
+        'MENU_FIND_BOXES': (
+            (boxes_matches, do(), 'ENTER_BOXES'),
+            (always_matches, do(Press('s'), Wait(.5)), 'MENU_FIND_BOXES'),
+        ),
+        'ENTER_BOXES': (
+            (boxes_matches, do(Press('A'), Wait(3)), 'ENTER_BOXES'),
+            (always_matches, do(), 'PICKUP_TO_COLUMN'),
+        ),
+        # loop point
+        'PICKUP_TO_COLUMN': (
+            (column_matches, do(), 'PICKUP_MINUS'),
+            (always_matches, do(Press('d'), Wait(.4)), 'PICKUP_TO_COLUMN'),
+        ),
+        'PICKUP_MINUS': (
+            (sel_text_matches, do(Press('-'), Wait(.5)), 'PICKUP_MINUS'),
+            (always_matches, Press('s', duration=1), 'PICKUP_SELECTION'),
+        ),
+        'PICKUP_SELECTION': (
+            (multiselect_matches, do(Press('A'), Wait(1)), 'PICKUP_SELECTION'),
+            (always_matches, do(), 'PICKUP_TO_0'),
+        ),
+        'PICKUP_TO_0': (
+            (pos0_matches, do(), 'PICKUP_TO_1'),
+            (always_matches, do(Press('a'), Wait(.5)), 'PICKUP_TO_0'),
+        ),
+        'PICKUP_TO_1': (
+            (pos1_matches, do(), 'PICKUP_TO_PARTY'),
+            (always_matches, do(Press('s'), Wait(.5)), 'PICKUP_TO_1'),
+        ),
+        'PICKUP_TO_PARTY': (
+            (
+                match_px(Point(y=255, x=248), Color(b=22, g=198, r=229)),
+                do(),
+                'PICKUP_DROP',
+            ),
+            (always_matches, do(Press('a'), Wait(.5)), 'PICKUP_TO_PARTY'),
+        ),
+        'PICKUP_DROP': (
+            (sel_text_matches, do(), 'PICKUP_EXIT_BOX'),
+            (always_matches, do(Press('A'), Wait(1)), 'PICKUP_DROP'),
+        ),
+        'PICKUP_EXIT_BOX': (
+            (world_matches, do(), 'REORIENT_OPEN_MAP'),
+            (always_matches, do(Press('B'), Wait(1)), 'PICKUP_EXIT_BOX'),
+        ),
+        'REORIENT_OPEN_MAP': (
+            (world_matches, do(Press('Y'), Wait(5)), 'REORIENT_OPEN_MAP'),
+            (always_matches, do(), 'REORIENT_FIND_ZERO'),
+        ),
+        'REORIENT_FIND_ZERO': (
+            (
+                match_text(
+                    'Zero Gate',
+                    Point(y=251, x=584),
+                    Point(y=280, x=695),
+                    invert=False,
+                ),
+                do(),
+                'REORIENT_MASH_A',
+            ),
+            (
+                always_matches,
+                do(Press('$', duration=.11), Wait(1)),
+                'REORIENT_FIND_ZERO',
+            ),
+        ),
+        'REORIENT_MASH_A': (
             (
                 match_text(
                     'Map',
@@ -123,36 +199,22 @@ def main() -> int:
                     invert=False,
                 ),
                 do(Press('A'), Wait(1)),
-                'REORIENT_INITIAL',
+                'REORIENT_MASH_A',
             ),
-            (
-                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
-                do(
-                    reorient,
-                    # open menu
-                    Press('X'), Wait(1), Press('d'), Wait(1),
-                ),
-                'MENU',
-            ),
+            (always_matches, do(), 'REORIENT_MOVE'),
         ),
-        'MENU': (
+        'REORIENT_MOVE': (
             (
-                match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
+                world_matches,
                 do(
-                    # press A on boxes menu
-                    Wait(1), Press('A'), Wait(3),
-                    # select first column
-                    select,
-                    # move it over
-                    to_party_pos_1,
-                    Press('A'), Wait(.5),
-                    # out to main menu
-                    Press('B'), Wait(2),
-                    Press('B'), Wait(1),
+                    Wait(1),
+                    Press('+'), Wait(1),
+                    Press('z'), Wait(.5), Press('L'), Wait(.5),
+                    Press('w', duration=2.5),
+                    Press('L'), Wait(.1),
                 ),
                 'HATCH_5',
             ),
-            (always_matches, do(Press('s'), Wait(.5)), 'MENU'),
         ),
         'HATCH_5': (
             (
@@ -168,23 +230,7 @@ def main() -> int:
                 do(Press('A'), Wait(15)),
                 'HATCH_1',
             ),
-            (
-                eggs_done,
-                do(
-                    Wait(3),
-                    # open menu, into boxes
-                    Press('X'), Wait(2), Press('A'), Wait(3),
-                    # select party to put it back
-                    to_party_pos_1,
-                    select,
-                    # position in first column of box
-                    Press('d'), Wait(.5), Press('w'), Wait(.5),
-                    # put the hatched ones back and pick up new column
-                    move_to_column, Press('A'), Wait(.5),
-                    pick_up_new_column,
-                ),
-                'TO_OVERWORLD',
-            ),
+            (eggs_done, Wait(3), 'DEPOSIT_MENU'),
             (always_matches, do(Write('#'), Wait(1)), 'HATCH_5'),
         ),
         'HATCH_1': (
@@ -195,30 +241,62 @@ def main() -> int:
             ),
             (always_matches, do(Press('A'), Wait(1)), 'HATCH_1'),
         ),
-        'TO_OVERWORLD': (
-            (
-                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
-                do(Press('Y'), Wait(5), Press('$'), Wait(.5)),
-                'REORIENT_HATCH',
-            ),
-            (always_matches, do(Press('B'), Wait(1)), 'TO_OVERWORLD'),
+        'DEPOSIT_MENU': (
+            (world_matches, do(Press('X'), Wait(1)), 'DEPOSIT_MENU'),
+            (always_matches, do(), 'DEPOSIT_ENTER_BOXES'),
         ),
-        'REORIENT_HATCH': (
+        'DEPOSIT_ENTER_BOXES': (
+            (boxes_matches, do(Press('A'), Wait(3)), 'DEPOSIT_ENTER_BOXES'),
+            (always_matches, do(), 'DEPOSIT_TO_1'),
+        ),
+        'DEPOSIT_TO_1': (
+            (pos1_matches, do(), 'DEPOSIT_TO_PARTY'),
+            (always_matches, do(Press('s'), Wait(.5)), 'DEPOSIT_TO_1'),
+        ),
+        'DEPOSIT_TO_PARTY': (
             (
-                match_text(
-                    'Map',
-                    Point(y=90, x=226),
-                    Point(y=124, x=276),
-                    invert=False,
-                ),
+                match_px(Point(y=255, x=248), Color(b=22, g=198, r=229)),
+                do(),
+                'DEPOSIT_MINUS',
+            ),
+            (always_matches, do(Press('a'), Wait(.5)), 'DEPOSIT_TO_PARTY'),
+        ),
+        'DEPOSIT_MINUS': (
+            (sel_text_matches, do(Press('-'), Wait(.5)), 'DEPOSIT_MINUS'),
+            (always_matches, Press('s', duration=1), 'DEPOSIT_SELECTION'),
+        ),
+        'DEPOSIT_SELECTION': (
+            (
+                match_px(Point(y=217, x=27), Color(b=15, g=200, r=234)),
                 do(Press('A'), Wait(1)),
-                'REORIENT_HATCH',
+                'DEPOSIT_SELECTION',
             ),
-            (
-                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
-                reorient,
-                'HATCH_5',
-            ),
+            (always_matches, do(), 'DEPOSIT_BACK_TO_1'),
+        ),
+        'DEPOSIT_BACK_TO_1': (
+            (pos1_matches, do(), 'DEPOSIT_BACK_TO_0'),
+            (always_matches, do(Press('d'), Wait(.5)), 'DEPOSIT_BACK_TO_1'),
+        ),
+        'DEPOSIT_BACK_TO_0': (
+            (pos0_matches, do(), 'DEPOSIT_TO_COLUMN'),
+            (always_matches, do(Press('w'), Wait(.5)), 'DEPOSIT_BACK_TO_0'),
+        ),
+        'DEPOSIT_TO_COLUMN': (
+            (column_matches, do(), 'DEPOSIT_DROP'),
+            (always_matches, do(Press('d'), Wait(.5)), 'DEPOSIT_TO_COLUMN'),
+        ),
+        'DEPOSIT_DROP': (
+            (sel_text_matches, column_done, 'DEPOSIT_NEXT'),
+            (always_matches, do(Press('A'), Wait(1)), 'DEPOSIT_DROP'),
+        ),
+        'DEPOSIT_NEXT': (
+            (all_done, bye, 'INVALID'),
+            (box_done, get_box, 'DEPOSIT_NEXT_BOX'),
+            (always_matches, do(), 'PICKUP_TO_COLUMN'),
+        ),
+        'DEPOSIT_NEXT_BOX': (
+            (next_box_matches, do(), 'PICKUP_TO_COLUMN'),
+            (always_matches, do(Press('R'), Wait(1)), 'DEPOSIT_NEXT_BOX'),
         ),
     }
 
