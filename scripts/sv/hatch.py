@@ -11,8 +11,6 @@ from scripts.engine import always_matches
 from scripts.engine import bye
 from scripts.engine import Color
 from scripts.engine import do
-from scripts.engine import get_text
-from scripts.engine import getframe
 from scripts.engine import match_px
 from scripts.engine import match_text
 from scripts.engine import Point
@@ -22,6 +20,7 @@ from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import Wait
 from scripts.engine import Write
+from scripts.sv._box_mover import BoxMover
 
 
 def main() -> int:
@@ -72,29 +71,13 @@ def main() -> int:
     def box_done(frame: object) -> bool:
         return column == 0
 
-    box_name = 'unknown'
-
-    def get_box(vid: cv2.VideoCapture, ser: object) -> None:
-        nonlocal box_name
-        box_name = get_text(
-            getframe(vid),
-            Point(y=85, x=448),
-            Point(y=114, x=708),
-            invert=True,
-        )
-
-    def next_box_matches(frame: numpy.ndarray) -> bool:
-        return not match_text(
-            box_name,
-            Point(y=85, x=448),
-            Point(y=114, x=708),
-            invert=True,
-        )(frame)
+    box_mover = BoxMover()
 
     world_matches = match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244))
     boxes_matches = match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209))
     pos0_matches = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
     pos1_matches = match_px(Point(y=251, x=366), Color(b=47, g=189, r=220))
+    party1_matches = match_px(Point(y=255, x=248), Color(b=22, g=198, r=229))
     sel_text_matches = match_text(
         'Draw Selection Box',
         Point(y=679, x=762),
@@ -154,11 +137,7 @@ def main() -> int:
             (always_matches, do(Press('s'), Wait(.5)), 'PICKUP_TO_1'),
         ),
         'PICKUP_TO_PARTY': (
-            (
-                match_px(Point(y=255, x=248), Color(b=22, g=198, r=229)),
-                do(),
-                'PICKUP_DROP',
-            ),
+            (party1_matches, do(), 'PICKUP_DROP'),
             (always_matches, do(Press('a'), Wait(.5)), 'PICKUP_TO_PARTY'),
         ),
         'PICKUP_DROP': (
@@ -254,11 +233,7 @@ def main() -> int:
             (always_matches, do(Press('s'), Wait(.5)), 'DEPOSIT_TO_1'),
         ),
         'DEPOSIT_TO_PARTY': (
-            (
-                match_px(Point(y=255, x=248), Color(b=22, g=198, r=229)),
-                do(),
-                'DEPOSIT_MINUS',
-            ),
+            (party1_matches, do(), 'DEPOSIT_MINUS'),
             (always_matches, do(Press('a'), Wait(.5)), 'DEPOSIT_TO_PARTY'),
         ),
         'DEPOSIT_MINUS': (
@@ -291,11 +266,11 @@ def main() -> int:
         ),
         'DEPOSIT_NEXT': (
             (all_done, bye, 'INVALID'),
-            (box_done, get_box, 'DEPOSIT_NEXT_BOX'),
+            (box_done, box_mover.record, 'DEPOSIT_NEXT_BOX'),
             (always_matches, do(), 'PICKUP_TO_COLUMN'),
         ),
         'DEPOSIT_NEXT_BOX': (
-            (next_box_matches, do(), 'PICKUP_TO_COLUMN'),
+            (box_mover.changed, do(), 'PICKUP_TO_COLUMN'),
             (always_matches, do(Press('R'), Wait(1)), 'DEPOSIT_NEXT_BOX'),
         ),
     }
