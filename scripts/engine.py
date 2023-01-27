@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 import time
+from collections.abc import Mapping
 from typing import NamedTuple
 from typing import NoReturn
 from typing import Protocol
@@ -183,7 +184,7 @@ def run(
         vid: cv2.VideoCapture,
         ser: serial.Serial,
         initial: str,
-        states: dict[str, tuple[tuple[Matcher, Action, str], ...]],
+        states: Mapping[str, tuple[tuple[Matcher, Action, str], ...]],
         transition_timeout: int = 420,
 ) -> NoReturn:
     t0 = time.monotonic()

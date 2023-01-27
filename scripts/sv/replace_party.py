@@ -136,7 +136,7 @@ def main() -> int:
             (always_matches, do(Press('w'), Wait(.5)), 'FROM_0'),
         ),
         'DROP': (
-            (sel_text_matches, do(box_mover.record), 'BOX_RIGHT'),
+            (sel_text_matches, box_mover.record, 'BOX_RIGHT'),
             (always_matches, do(Press('A'), Wait(.5)), 'DROP'),
         ),
         'BOX_RIGHT': (
@@ -146,7 +146,6 @@ def main() -> int:
         'OUT': (
             (world_matches, bye, 'INVALID'),
             (always_matches, do(Press('B'), Wait(.5)), 'OUT'),
-            (always_matches, do(), 'WTF'),
         ),
     }
 
