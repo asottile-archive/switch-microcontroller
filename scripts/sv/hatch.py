@@ -18,9 +18,12 @@ from scripts.engine import Press
 from scripts.engine import require_tesseract
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
+from scripts.engine import States
 from scripts.engine import Wait
 from scripts.engine import Write
-from scripts.sv._box_mover import BoxMover
+from scripts.sv._move_box import move_box
+from scripts.sv._pixels import world_matches
+from scripts.sv._to_boxes import to_boxes
 
 
 def main() -> int:
@@ -71,10 +74,6 @@ def main() -> int:
     def box_done(frame: object) -> bool:
         return column == 0
 
-    box_mover = BoxMover()
-
-    world_matches = match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244))
-    boxes_matches = match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209))
     pos0_matches = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
     pos1_matches = match_px(Point(y=251, x=366), Color(b=47, g=189, r=220))
     party1_matches = match_px(Point(y=255, x=248), Color(b=22, g=198, r=229))
@@ -85,36 +84,8 @@ def main() -> int:
         invert=True,
     )
 
-    states = {
-        'INITIAL': (
-            (world_matches, do(Press('X'), Wait(1)), 'INITIAL'),
-            (
-                match_text(
-                    'MAIN MENU',
-                    Point(y=116, x=888),
-                    Point(y=147, x=1030),
-                    invert=True,
-                ),
-                do(),
-                'MENU_MOVE_RIGHT',
-            ),
-        ),
-        'MENU_MOVE_RIGHT': (
-            (
-                match_px(Point(y=156, x=390), Color(b=31, g=190, r=216)),
-                do(Press('d'), Wait(.5)),
-                'MENU_MOVE_RIGHT',
-            ),
-            (always_matches, do(), 'MENU_FIND_BOXES'),
-        ),
-        'MENU_FIND_BOXES': (
-            (boxes_matches, do(), 'ENTER_BOXES'),
-            (always_matches, do(Press('s'), Wait(.5)), 'MENU_FIND_BOXES'),
-        ),
-        'ENTER_BOXES': (
-            (boxes_matches, do(Press('A'), Wait(3)), 'ENTER_BOXES'),
-            (always_matches, do(), 'PICKUP_TO_COLUMN'),
-        ),
+    states: States = {
+        **to_boxes('INTIIAL', 'PICKUP_TO_COLUMN'),
         # loop point
         'PICKUP_TO_COLUMN': (
             (column_matches, do(), 'PICKUP_MINUS'),
@@ -220,14 +191,7 @@ def main() -> int:
             ),
             (always_matches, do(Press('A'), Wait(1)), 'HATCH_1'),
         ),
-        'DEPOSIT_MENU': (
-            (world_matches, do(Press('X'), Wait(1)), 'DEPOSIT_MENU'),
-            (always_matches, do(), 'DEPOSIT_ENTER_BOXES'),
-        ),
-        'DEPOSIT_ENTER_BOXES': (
-            (boxes_matches, do(Press('A'), Wait(3)), 'DEPOSIT_ENTER_BOXES'),
-            (always_matches, do(), 'DEPOSIT_TO_1'),
-        ),
+        **to_boxes('DEPOSIT_MENU', 'DEPOSIT_TO_1'),
         'DEPOSIT_TO_1': (
             (pos1_matches, do(), 'DEPOSIT_TO_PARTY'),
             (always_matches, do(Press('s'), Wait(.5)), 'DEPOSIT_TO_1'),
@@ -266,13 +230,10 @@ def main() -> int:
         ),
         'DEPOSIT_NEXT': (
             (all_done, bye, 'INVALID'),
-            (box_done, box_mover.record, 'DEPOSIT_NEXT_BOX'),
+            (box_done, do(), 'DEPOSIT_NEXT_BOX'),
             (always_matches, do(), 'PICKUP_TO_COLUMN'),
         ),
-        'DEPOSIT_NEXT_BOX': (
-            (box_mover.changed, do(), 'PICKUP_TO_COLUMN'),
-            (always_matches, do(Press('R'), Wait(1)), 'DEPOSIT_NEXT_BOX'),
-        ),
+        **move_box('DEPOSIT_NEXT_BOX', 'PICKUP_TO_COLUMN', 'R'),
     }
 
     with serial.Serial(args.serial, 9600) as ser:

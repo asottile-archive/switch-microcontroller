@@ -16,8 +16,11 @@ from scripts.engine import Press
 from scripts.engine import require_tesseract
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
+from scripts.engine import States
 from scripts.engine import Wait
-from scripts.sv._box_mover import BoxMover
+from scripts.sv._move_box import move_box
+from scripts.sv._pixels import world_matches
+from scripts.sv._to_boxes import to_boxes
 
 
 def main() -> int:
@@ -31,10 +34,6 @@ def main() -> int:
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-    box_mover = BoxMover()
-
-    world_matches = match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244))
-    boxes_matches = match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209))
     pos0_matches = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
     pos1_matches = match_px(Point(y=251, x=366), Color(b=47, g=189, r=220))
     party1_matches = match_px(Point(y=255, x=248), Color(b=22, g=198, r=229))
@@ -45,40 +44,9 @@ def main() -> int:
         invert=True,
     )
 
-    states = {
-        'INITIAL': (
-            (world_matches, do(Press('X'), Wait(1)), 'INITIAL'),
-            (
-                match_text(
-                    'MAIN MENU',
-                    Point(y=116, x=888),
-                    Point(y=147, x=1030),
-                    invert=True,
-                ),
-                do(),
-                'MENU_MOVE_RIGHT',
-            ),
-        ),
-        'MENU_MOVE_RIGHT': (
-            (
-                match_px(Point(y=156, x=390), Color(b=31, g=190, r=216)),
-                do(Press('d'), Wait(.5)),
-                'MENU_MOVE_RIGHT',
-            ),
-            (always_matches, do(), 'MENU_FIND_BOXES'),
-        ),
-        'MENU_FIND_BOXES': (
-            (boxes_matches, do(), 'ENTER_BOXES'),
-            (always_matches, do(Press('s'), Wait(.5)), 'MENU_FIND_BOXES'),
-        ),
-        'ENTER_BOXES': (
-            (boxes_matches, do(Press('A'), Wait(3)), 'ENTER_BOXES'),
-            (always_matches, do(box_mover.record), 'BOX_LEFT'),
-        ),
-        'BOX_LEFT': (
-            (box_mover.changed, do(), 'PARTY_TOP'),
-            (always_matches, do(Press('L'), Wait(.5)), 'BOX_LEFT'),
-        ),
+    states: States = {
+        **to_boxes('INITIAL', 'BOX_LEFT_INITIAL'),
+        **move_box('BOX_LEFT', 'PARTY_TOP', 'L'),
         'PARTY_TOP': (
             (
                 match_px(Point(y=152, x=248), Color(b=22, g=198, r=229)),
@@ -136,13 +104,10 @@ def main() -> int:
             (always_matches, do(Press('w'), Wait(.5)), 'FROM_0'),
         ),
         'DROP': (
-            (sel_text_matches, box_mover.record, 'BOX_RIGHT'),
+            (sel_text_matches, do(), 'BOX_RIGHT'),
             (always_matches, do(Press('A'), Wait(.5)), 'DROP'),
         ),
-        'BOX_RIGHT': (
-            (box_mover.changed, do(), 'OUT'),
-            (always_matches, do(Press('R'), Wait(1)), 'BOX_RIGHT'),
-        ),
+        **move_box('BOX_RIGHT', 'OUT', 'R'),
         'OUT': (
             (world_matches, bye, 'INVALID'),
             (always_matches, do(Press('B'), Wait(.5)), 'OUT'),

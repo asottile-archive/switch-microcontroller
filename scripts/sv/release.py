@@ -5,17 +5,15 @@ import argparse
 import cv2
 import serial
 
-from scripts.engine import Action
 from scripts.engine import always_matches
-from scripts.engine import Color
 from scripts.engine import do
-from scripts.engine import match_px
-from scripts.engine import Matcher
-from scripts.engine import Point
 from scripts.engine import Press
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
+from scripts.engine import States
 from scripts.engine import Wait
+from scripts.sv._move_box import move_box
+from scripts.sv._to_boxes import to_boxes
 
 
 def main() -> int:
@@ -56,7 +54,6 @@ def main() -> int:
         for _ in range(5):
             do(Press('a'), Wait(.25))(vid, ser)
 
-        do(Press('R'), Wait(.75))(vid, ser)
         box += 1
 
     def done(frame: object) -> bool:
@@ -65,31 +62,13 @@ def main() -> int:
     def bye(vid: object, ser: object) -> None:
         raise SystemExit(0)
 
-    states: dict[str, tuple[tuple[Matcher, Action, str], ...]]
-    states = {
-        'INITIAL': (
-            (
-                match_px(Point(y=598, x=1160), Color(b=17, g=203, r=244)),
-                do(Press('X'), Wait(1), Press('d'), Wait(1)),
-                'MENU',
-            ),
-        ),
-        'MENU': (
-            (
-                match_px(Point(y=241, x=1161), Color(b=28, g=183, r=209)),
-                # press A on boxes menu
-                do(Wait(1), Press('A'), Wait(3)),
-                'RELEASE_BOX',
-            ),
-            (always_matches, do(Press('s'), Wait(.75)), 'MENU'),
-        ),
+    states: States = {
+        **to_boxes('INITIAL', 'RELEASE_BOX'),
         'RELEASE_BOX': (
-            (done, bye, 'INITIAL'),
-            (always_matches, release_box, 'RESET_TIMEOUT'),
+            (done, bye, 'INVALID'),
+            (always_matches, release_box, 'NEXT_BOX'),
         ),
-        'RESET_TIMEOUT': (
-            (always_matches, Wait(1), 'RELEASE_BOX'),
-        ),
+        **move_box('NEXT_BOX', 'RELEASE_BOX', 'R'),
     }
 
     with serial.Serial(args.serial, 9600) as ser:

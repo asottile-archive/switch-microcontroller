@@ -179,12 +179,15 @@ class Wait(NamedTuple):
         wait_and_render(vid, self.d)
 
 
+States = Mapping[str, tuple[tuple[Matcher, Action, str], ...]]
+
+
 def run(
         *,
         vid: cv2.VideoCapture,
         ser: serial.Serial,
         initial: str,
-        states: Mapping[str, tuple[tuple[Matcher, Action, str], ...]],
+        states: States,
         transition_timeout: int = 420,
 ) -> NoReturn:
     t0 = time.monotonic()
