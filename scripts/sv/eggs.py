@@ -8,6 +8,7 @@ import serial
 
 from scripts.engine import all_match
 from scripts.engine import always_matches
+from scripts.engine import any_match
 from scripts.engine import Color
 from scripts.engine import do
 from scripts.engine import match_px
@@ -23,6 +24,7 @@ from scripts.engine import Wait
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', default=SERIAL_DEFAULT)
+    parser.add_argument('--boxes', type=int, default=1)
     args = parser.parse_args()
 
     require_tesseract()
@@ -32,13 +34,22 @@ def main() -> int:
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     start_time = 0.0
+    egg_count = 0
 
     def set_start(vid: object, ser: object) -> None:
         nonlocal start_time
         start_time = time.monotonic()
 
-    def are_we_done(frame: object) -> bool:
+    def increment_egg_count(vid: object, ser: object) -> None:
+        nonlocal egg_count
+        egg_count += 1
+        print(f'DEBUG: You have {egg_count} eggs currently')
+
+    def restart_eggs(frame: object) -> bool:
         return time.monotonic() > start_time + 30 * 60
+
+    def are_we_done(frame: object) -> bool:
+        return egg_count >= args.boxes * 30
 
     def bye(vid: object, ser: object) -> None:
         raise SystemExit
@@ -140,12 +151,34 @@ def main() -> int:
                 'MASH_A',
             ),
             (
+                # if it fails, go back to the beginning
                 always_matches,
-                do(Press('!'), Wait(.5), Press('.')),
-                'INVALID',
+                do(
+                    Press('B'), Wait(2), Press('Y'),
+                    Wait(.5), Press('A'), Wait(5),
+                ),
+                'INITIAL',
             ),
         ),
         'MASH_A': (
+            (
+                any_match(
+                    match_text(
+                        'Do you want to',
+                        Point(y=549, x=704),
+                        Point(y=590, x=889),
+                        invert=True,
+                    ),
+                    match_text(
+                        'Do you want to',
+                        Point(y=549, x=658),
+                        Point(y=589, x=841),
+                        invert=True,
+                    ),
+                ),
+                do(Wait(1), Press('A'), Wait(1)),
+                'VERIFY_EGG',
+            ),
             (
                 all_match(
                     match_px(Point(y=628, x=351), Color(b=49, g=43, r=30)),
@@ -157,11 +190,30 @@ def main() -> int:
             ),
             (always_matches, do(), 'WAIT'),
         ),
+        'VERIFY_EGG': (
+            (
+                match_text(
+                    'You took the Egg!',
+                    Point(y=540, x=351),
+                    Point(y=640, x=909),
+                    invert=True,
+                ),
+                do(increment_egg_count, Press('A'), Wait(1)),
+                'MASH_A',
+            ),
+            (always_matches, do(Press('A'), Wait(1)), 'VERIFY_EGG'),
+        ),
         'WAIT': (
             (
                 are_we_done,
                 do(Press('Y'), Wait(.5), Press('A'), Wait(5), bye),
-                'EXIT',  # TODO: loop?
+                'EXIT',
+            ),
+            (
+                # if the timer runs out, restart the egg-grabbing sequence
+                restart_eggs,
+                do(Press('Y'), Wait(.5), Press('A'), Wait(5)),
+                'INITIAL',
             ),
             (always_matches, do(Wait(60), Press('A'), Wait(.5)), 'MASH_A'),
         ),
