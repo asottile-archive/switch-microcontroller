@@ -45,7 +45,7 @@ def main() -> int:
     )
 
     states: States = {
-        **to_boxes('INITIAL', 'BOX_LEFT_INITIAL'),
+        **to_boxes('INITIAL', 'BOX_LEFT'),
         **move_box('BOX_LEFT', 'PARTY_TOP', 'L'),
         'PARTY_TOP': (
             (

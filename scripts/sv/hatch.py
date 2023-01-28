@@ -85,7 +85,7 @@ def main() -> int:
     )
 
     states: States = {
-        **to_boxes('INTIIAL', 'PICKUP_TO_COLUMN'),
+        **to_boxes('INITIAL', 'PICKUP_TO_COLUMN'),
         # loop point
         'PICKUP_TO_COLUMN': (
             (column_matches, do(), 'PICKUP_MINUS'),
