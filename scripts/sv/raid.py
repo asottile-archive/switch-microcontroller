@@ -361,6 +361,7 @@ def main() -> int:
     }
 
     with serial.Serial(args.serial, 9600) as ser:
+        do(Wait(5), Press('L'), Wait(1))(vid, ser)
         run(vid=vid, ser=ser, initial='INITIAL', states=states)
 
 

@@ -144,7 +144,7 @@ def match_px(point: Point, *colors: Color) -> Matcher:
     def match_px_impl(frame: numpy.ndarray) -> bool:
         px = frame[point.norm(frame.shape)]
         for color in colors:
-            if sum((c2 - c1) * (c2 - c1) for c1, c2 in zip(px, color)) < 2000:
+            if sum((c2 - c1) * (c2 - c1) for c1, c2 in zip(px, color)) < 5000:
                 return True
         else:
             return False
