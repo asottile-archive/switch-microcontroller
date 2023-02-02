@@ -38,7 +38,7 @@ def _extract_type(
     bottom_right = Point(y=196, x=1095).norm(dims)
     crop = im[top_left.y:bottom_right.y, top_left.x:bottom_right.x]
 
-    color = numpy.array([71, 51, 39])
+    color = crop[len(crop) // 3, len(crop) // 3]
     t = numpy.array([1, 1, 1])
     return cv2.inRange(crop, color - t * 20, color + t * 20)
 
