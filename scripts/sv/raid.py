@@ -292,21 +292,18 @@ def main() -> int:
                 'RAID',
             ),
             (
-                all_match(
-                    match_px(Point(y=400, x=985), Color(b=46, g=200, r=213)),
-                    any_match(
-                        match_text(
-                            'Collision Course',
-                            Point(y=400, x=985),
-                            Point(y=435, x=1155),
-                            invert=False,
-                        ),
-                        match_text(
-                            'Electro Drift',
-                            Point(y=402, x=985),
-                            Point(y=433, x=1115),
-                            invert=False,
-                        ),
+                any_match(
+                    match_text(
+                        'Collision Course',
+                        Point(y=400, x=985),
+                        Point(y=435, x=1155),
+                        invert=False,
+                    ),
+                    match_text(
+                        'Electro Drift',
+                        Point(y=402, x=985),
+                        Point(y=433, x=1115),
+                        invert=False,
                     ),
                 ),
                 do(Press('A'), Wait(.2)),
