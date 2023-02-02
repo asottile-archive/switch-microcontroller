@@ -11,6 +11,7 @@ from scripts.engine import always_matches
 from scripts.engine import bye
 from scripts.engine import Color
 from scripts.engine import do
+from scripts.engine import make_vid
 from scripts.engine import match_px
 from scripts.engine import match_text
 from scripts.engine import Point
@@ -33,10 +34,7 @@ def main() -> int:
     args = parser.parse_args()
 
     require_tesseract()
-
-    vid = cv2.VideoCapture(0)
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    vid = make_vid()
 
     box = 0
     column = 0

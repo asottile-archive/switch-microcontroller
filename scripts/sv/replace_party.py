@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import argparse
 
-import cv2
 import serial
 
 from scripts.engine import always_matches
 from scripts.engine import bye
 from scripts.engine import Color
 from scripts.engine import do
+from scripts.engine import make_vid
 from scripts.engine import match_px
 from scripts.engine import match_text
 from scripts.engine import Point
@@ -29,10 +29,7 @@ def main() -> int:
     args = parser.parse_args()
 
     require_tesseract()
-
-    vid = cv2.VideoCapture(0)
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    vid = make_vid()
 
     pos0_matches = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
     pos1_matches = match_px(Point(y=251, x=366), Color(b=47, g=189, r=220))

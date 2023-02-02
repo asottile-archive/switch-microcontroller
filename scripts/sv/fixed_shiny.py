@@ -10,6 +10,7 @@ import serial
 
 from scripts.engine import always_matches
 from scripts.engine import do
+from scripts.engine import make_vid
 from scripts.engine import match_text
 from scripts.engine import Point
 from scripts.engine import Press
@@ -66,9 +67,7 @@ def main() -> int:
     parser.add_argument('--serial', default=SERIAL_DEFAULT)
     args = parser.parse_args()
 
-    vid = cv2.VideoCapture(0)
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    vid = make_vid()
 
     states: States = {
         'INITIAL': (

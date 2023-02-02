@@ -16,6 +16,13 @@ import serial
 SERIAL_DEFAULT = 'COM1' if sys.platform == 'win32' else '/dev/ttyUSB0'
 
 
+def make_vid() -> cv2.VideoCapture:
+    vid = cv2.VideoCapture(0)
+    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    return vid
+
+
 def require_tesseract() -> None:
     if not shutil.which('tesseract'):
         raise SystemExit('need to install `tesseract-ocr`')

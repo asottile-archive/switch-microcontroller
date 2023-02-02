@@ -7,6 +7,7 @@ import serial
 
 from scripts.engine import always_matches
 from scripts.engine import do
+from scripts.engine import make_vid
 from scripts.engine import Press
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
@@ -22,9 +23,7 @@ def main() -> int:
     parser.add_argument('--boxes', type=int, required=True)
     args = parser.parse_args()
 
-    vid = cv2.VideoCapture(0)
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    vid = make_vid()
 
     box = 0
 
