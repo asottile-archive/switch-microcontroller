@@ -7,6 +7,7 @@ import numpy
 
 from scripts.engine import Color
 from scripts.engine import get_text
+from scripts.engine import make_vid
 from scripts.engine import Point
 
 
@@ -19,9 +20,7 @@ def main() -> int:
         def getframe() -> numpy.ndarray:
             return cv2.imread(args.image)
     else:
-        vid = cv2.VideoCapture(0)
-        vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        vid = make_vid()
 
         def getframe() -> numpy.ndarray:
             return vid.read()[1]
