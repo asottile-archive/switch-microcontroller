@@ -29,6 +29,41 @@ def getframe(vid: cv2.VideoCapture) -> numpy.ndarray:
     return frame
 
 
+def request_box(vid: cv2.VideoCapture) -> tuple[Point, Point]:
+    start: Point | None = None
+    pos = Point(y=-1, x=-1)
+    end: Point | None = None
+
+    def cb(event: int, x: int, y: int, flags: object, param: object) -> None:
+        nonlocal start, pos, end
+
+        if event == cv2.EVENT_MOUSEMOVE:
+            pos = Point(y=y, x=x)
+        elif event == cv2.EVENT_LBUTTONDOWN:
+            start = Point(y=y, x=x)
+        elif event == cv2.EVENT_LBUTTONUP:
+            end = Point(y=y, x=x)
+
+    cv2.namedWindow('game')
+    cv2.setMouseCallback('game', cb)
+    while start is None or end is None:
+        frame = getframe(vid)
+        if start is not None:
+            cv2.rectangle(
+                frame,
+                (start.x, start.y),
+                (pos.x, pos.y),
+                Color(b=255, g=0, r=0),
+                1,
+            )
+        cv2.imshow('game', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            raise SystemExit(0)
+
+    cv2.setMouseCallback('game', lambda *_: None)
+    return start, end
+
+
 def press(ser: serial.Serial, s: str, duration: float) -> None:
     print(f'{s=} {duration=}')
     ser.write(s.encode())

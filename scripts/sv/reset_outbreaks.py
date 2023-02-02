@@ -3,12 +3,14 @@ from __future__ import annotations
 import argparse
 
 import cv2
+import numpy
 import serial
 
 from scripts.engine import do
 from scripts.engine import match_text
 from scripts.engine import Point
 from scripts.engine import Press
+from scripts.engine import request_box
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
@@ -24,13 +26,26 @@ def main() -> int:
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-    def check(frame: object) -> bool:
+    print('select the area to search by drawing a box')
+    tl, br = request_box(vid)
+
+    seen: list[numpy.ndarray] = []
+
+    def check(frame: numpy.ndarray) -> bool:
+        crop = frame[tl.y:br.y, tl.x:br.x]
+        for img in seen:
+            if numpy.array_equal(img, crop):
+                print('already seen!')
+                return True
+
+        do(Press('!'), Wait(.1), Press('.'))(vid, ser)
         try:
             input('is this the right raid? (enter to skip, ^D to exit)')
         except (EOFError, KeyboardInterrupt):
             print('\nbye!')
             raise SystemExit(0)
         else:
+            seen.append(crop)
             return True
 
     states: States = {
