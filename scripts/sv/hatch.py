@@ -64,7 +64,7 @@ def main() -> int:
         else:
             column += 1
 
-        print(f'box={box + 1} column={column + 1}')
+        print(f' box={box + 1} column={column + 1} '.center(79, '='))
 
     def all_done(frame: object) -> bool:
         return box == args.boxes
