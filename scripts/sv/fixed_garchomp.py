@@ -9,6 +9,7 @@ import cv2
 import numpy
 import serial
 
+from scripts._game_crash import GameCrash
 from scripts.engine import always_matches
 from scripts.engine import do
 from scripts.engine import get_text
@@ -20,7 +21,6 @@ from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
-from scripts.sv._game_crash import GameCrash
 from scripts.sv._pixels import world_matches
 
 
