@@ -26,25 +26,25 @@ from scripts.sv._pixels import world_matches
 
 
 def nontera_matches(frame: numpy.ndarray) -> bool:
-    tl = Point(y=256, x=657)
-    br = Point(y=266, x=666)
-    return numpy.average(frame[tl.y:br.y, tl.x:br.x]) < 220
+    tl = Point(y=504, x=318)
+    br = Point(y=516, x=328)
+    return numpy.average(frame[tl.y:br.y, tl.x:br.x]) < 235
 
 
 def nonshiny_matches(frame: numpy.ndarray) -> bool:
     cv2.imwrite('img.png', frame)
-    tl = Point(y=83, x=645).norm(frame.shape)
-    br = Point(y=120, x=674).norm(frame.shape)
+    tl = Point(y=411, x=191)
+    br = Point(y=553, x=313)
     crop = frame[tl.y:br.y, tl.x:br.x]
     os.makedirs('crops', exist_ok=True)
     cv2.imwrite('crop.png', crop)
     shutil.copy('crop.png', f'crops/crop-{int(time.time())}.png')
     hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
-    thres = cv2.inRange(hsv, (2, 25, 25), (7, 255, 255))
+    thres = cv2.inRange(hsv, (95, 2, 25), (120, 150, 255))
     cv2.imwrite('thres.png', thres)
     count = numpy.count_nonzero(thres)
     print(f'matched: {count}')
-    return count >= 300
+    return count >= 2200
 
 
 def main() -> int:
@@ -69,7 +69,7 @@ def main() -> int:
             (needs_clock, Wait(1), 'CLOCK'),
             (always_matches, do(), 'BEGIN'),
         ),
-        **clock(datetime.datetime(2023, 3, 1, 0, 25), 'CLOCK', 'CLOCK_DONE'),
+        **clock(datetime.datetime(2023, 3, 2, 0, 25), 'CLOCK', 'CLOCK_DONE'),
         'CLOCK_DONE': ((always_matches, clock_set, 'BEGIN'),),
         'BEGIN': (
             (
@@ -106,12 +106,12 @@ def main() -> int:
             ),
         ),
         'WORLD': (
-            (world_matches, Wait(.5), 'CHECK_TERA'),
+            (world_matches, Wait(.2), 'CHECK_TERA'),
             (game_crash.check, do(Press('A'), Wait(1)), 'INITIAL'),
         ),
         'CHECK_TERA': (
             (nontera_matches, do(), 'RESET'),
-            (always_matches, Wait(5.75), 'CHECK'),
+            (always_matches, Wait(.6), 'CHECK'),
         ),
         'CHECK': (
             (nonshiny_matches, do(), 'RESET'),

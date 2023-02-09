@@ -58,8 +58,8 @@ def main() -> int:
 
             start = None
 
-    cv2.namedWindow('game')
-    cv2.setMouseCallback('game', cb)
+    cv2.namedWindow('game2')
+    cv2.setMouseCallback('game2', cb)
 
     while True:
         frame = getframe()
@@ -73,7 +73,7 @@ def main() -> int:
                 1,
             )
 
-        cv2.imshow('game', frame)
+        cv2.imshow('game2', frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             raise SystemExit(0)
