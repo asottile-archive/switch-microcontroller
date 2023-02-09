@@ -39,11 +39,11 @@ def nonshiny_matches(frame: numpy.ndarray) -> bool:
     cv2.imwrite('crop.png', crop)
     shutil.copy('crop.png', f'crops/crop-{int(time.time())}.png')
     hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
-    thres = cv2.inRange(hsv, (2, 25, 25), (6, 255, 255))
+    thres = cv2.inRange(hsv, (2, 25, 25), (7, 255, 255))
     cv2.imwrite('thres.png', thres)
     count = numpy.count_nonzero(thres)
     print(f'matched: {count}')
-    return count >= 350
+    return count >= 300
 
 
 def main() -> int:
