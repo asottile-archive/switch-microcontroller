@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
 
+import cv2
 import numpy
 import serial
 
@@ -20,16 +23,35 @@ from scripts.engine import Wait
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', default=SERIAL_DEFAULT)
+    parser.add_argument('--save', required=True)
     args = parser.parse_args()
 
     vid = make_vid()
 
-    print('select the area to search by drawing a box')
-    tl, br = request_box(vid)
+    os.makedirs(args.save, exist_ok=True)
+    save_json = os.path.join(args.save, 't.json')
+    if os.path.exists(save_json):
+        with open(save_json) as f:
+            contents = json.load(f)
+        tl = Point(*contents['tl'])
+        br = Point(*contents['br'])
+    else:
+        print('select the area to search by drawing a box')
+        tl, br = request_box(vid)
+        with open(save_json, 'w') as f:
+            json.dump({'tl': tl, 'br': br}, f)
 
-    seen: list[numpy.ndarray] = []
+    i = 0
+    seen = [
+        cv2.imread(os.path.join(args.save, fname))
+        for fname in os.listdir(args.save)
+        if fname.endswith('.png')
+    ]
 
     def check(frame: numpy.ndarray) -> bool:
+        nonlocal i
+        i += 1
+        print(f' (seen={len(seen)}, n={i}) '.center(79, '='))
         crop = frame[tl.y:br.y, tl.x:br.x]
         for img in seen:
             if numpy.array_equal(img, crop):
@@ -44,6 +66,7 @@ def main() -> int:
             raise SystemExit(0)
         else:
             seen.append(crop)
+            cv2.imwrite(os.path.join(args.save, f'{len(seen)}.png'), crop)
             return True
 
     states: States = {
