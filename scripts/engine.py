@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,7 @@ import numpy
 import serial
 
 SERIAL_DEFAULT = 'COM1' if sys.platform == 'win32' else '/dev/ttyUSB0'
+SHOW = not os.environ.get('NOSHOW')
 
 
 def make_vid() -> cv2.VideoCapture:
@@ -30,7 +32,8 @@ def require_tesseract() -> None:
 
 def getframe(vid: cv2.VideoCapture) -> numpy.ndarray:
     _, frame = vid.read()
-    cv2.imshow('game', frame)
+    if SHOW:
+        cv2.imshow('game', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         raise SystemExit(0)
     return frame
