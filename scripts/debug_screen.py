@@ -1,16 +1,29 @@
 from __future__ import annotations
 
+import argparse
+
 import cv2
+import numpy
 
 from scripts.engine import Color
 from scripts.engine import get_text
+from scripts.engine import make_vid
 from scripts.engine import Point
 
 
 def main() -> int:
-    vid = cv2.VideoCapture(0)
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--image')
+    args = parser.parse_args()
+
+    if args.image:
+        def getframe() -> numpy.ndarray:
+            return cv2.imread(args.image)
+    else:
+        vid = make_vid()
+
+        def getframe() -> numpy.ndarray:
+            return vid.read()[1]
 
     pos = Point(y=-1, x=-1)
     start: Point | None = None
@@ -27,9 +40,11 @@ def main() -> int:
             start = start.denorm(frame.shape)
             end = Point(y=y, x=x).denorm(frame.shape)
 
-            _, current = vid.read()
+            current = getframe()
             if start == end:
                 print(f'match_px({end}, {Color(*current[y][x])})')
+                arr = numpy.array([[current[y][x]]])
+                print(f'hsv: {cv2.cvtColor(arr, cv2.COLOR_BGR2HSV)}')
             else:
                 start, end = min(start, end), max(start, end)
                 for invert in (True, False):
@@ -43,11 +58,11 @@ def main() -> int:
 
             start = None
 
-    cv2.namedWindow('game')
-    cv2.setMouseCallback('game', cb)
+    cv2.namedWindow('game2')
+    cv2.setMouseCallback('game2', cb)
 
     while True:
-        _, frame = vid.read()
+        frame = getframe()
 
         if start is not None:
             cv2.rectangle(
@@ -58,7 +73,7 @@ def main() -> int:
                 1,
             )
 
-        cv2.imshow('game', frame)
+        cv2.imshow('game2', frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             raise SystemExit(0)

@@ -304,6 +304,7 @@ void GetNextReport(USB_JoystickReport_Input_t* report, uint8_t c) {
             break;
 
         case '$':
+            report->LX = (STICK_MAX - STICK_MIN) * 3 / 5;
             report->LY = (STICK_MAX - STICK_MIN) * 3 / 5;
             break;
     }

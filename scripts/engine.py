@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
 import time
+from collections.abc import Mapping
 from typing import NamedTuple
 from typing import NoReturn
 from typing import Protocol
@@ -13,6 +15,14 @@ import numpy
 import serial
 
 SERIAL_DEFAULT = 'COM1' if sys.platform == 'win32' else '/dev/ttyUSB0'
+SHOW = not os.environ.get('NOSHOW')
+
+
+def make_vid() -> cv2.VideoCapture:
+    vid = cv2.VideoCapture(0)
+    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    return vid
 
 
 def require_tesseract() -> None:
@@ -22,10 +32,46 @@ def require_tesseract() -> None:
 
 def getframe(vid: cv2.VideoCapture) -> numpy.ndarray:
     _, frame = vid.read()
-    cv2.imshow('game', frame)
+    if SHOW:
+        cv2.imshow('game', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         raise SystemExit(0)
     return frame
+
+
+def request_box(vid: cv2.VideoCapture) -> tuple[Point, Point]:
+    start: Point | None = None
+    pos = Point(y=-1, x=-1)
+    end: Point | None = None
+
+    def cb(event: int, x: int, y: int, flags: object, param: object) -> None:
+        nonlocal start, pos, end
+
+        if event == cv2.EVENT_MOUSEMOVE:
+            pos = Point(y=y, x=x)
+        elif event == cv2.EVENT_LBUTTONDOWN:
+            start = Point(y=y, x=x)
+        elif event == cv2.EVENT_LBUTTONUP:
+            end = Point(y=y, x=x)
+
+    cv2.namedWindow('game')
+    cv2.setMouseCallback('game', cb)
+    while start is None or end is None:
+        frame = getframe(vid)
+        if start is not None:
+            cv2.rectangle(
+                frame,
+                (start.x, start.y),
+                (pos.x, pos.y),
+                Color(b=255, g=0, r=0),
+                1,
+            )
+        cv2.imshow('game', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            raise SystemExit(0)
+
+    cv2.setMouseCallback('game', lambda *_: None)
+    return start, end
 
 
 def press(ser: serial.Serial, s: str, duration: float) -> None:
@@ -145,6 +191,10 @@ def match_text(
     return match_text_impl
 
 
+def bye(vid: object, ser: object) -> None:
+    raise SystemExit(0)
+
+
 def do(*actions: Action) -> Action:
     def do_impl(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         for action in actions:
@@ -160,6 +210,13 @@ class Press(NamedTuple):
         press(ser, self.button, duration=self.duration)
 
 
+class Write(NamedTuple):
+    button: str
+
+    def __call__(self, vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+        ser.write(self.button.encode())
+
+
 class Wait(NamedTuple):
     d: float
 
@@ -167,12 +224,15 @@ class Wait(NamedTuple):
         wait_and_render(vid, self.d)
 
 
+States = Mapping[str, tuple[tuple[Matcher, Action, str], ...]]
+
+
 def run(
         *,
         vid: cv2.VideoCapture,
         ser: serial.Serial,
         initial: str,
-        states: dict[str, tuple[tuple[Matcher, Action, str], ...]],
+        states: States,
         transition_timeout: int = 420,
 ) -> NoReturn:
     t0 = time.monotonic()
