@@ -36,6 +36,10 @@ def main() -> int:
 
     vid = make_vid()
 
+    world = all_match(
+        match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
+        match_px(Point(y=701, x=14), Color(b=234, g=234, r=234)),
+    )
     dialog = all_match(
         match_px(Point(y=587, x=20), Color(b=48, g=48, r=48)),
         match_px(Point(y=672, x=1233), Color(b=48, g=48, r=48)),
@@ -112,18 +116,14 @@ def main() -> int:
         ),
         'WORLD': (
             (
-                match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
+                world,
                 # adjust this if needed
                 Press('w', duration=2.25),
                 'WAIT_FOR_ENCOUNTER',
             ),
         ),
         'WAIT_FOR_ENCOUNTER': (
-            (
-                match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
-                do(),
-                'WAIT_FOR_ENCOUNTER',
-            ),
+            (world, do(), 'WAIT_FOR_ENCOUNTER'),
             (always_matches, do(), 'WAIT_FOR_DIALOG'),
         ),
         'WAIT_FOR_DIALOG': (
