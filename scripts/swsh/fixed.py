@@ -71,7 +71,7 @@ def main() -> int:
                         invert=False,
                     ),
                 ),
-                do(Press('A'), Wait(1)),
+                do(Press('A'), Wait(1.5)),
                 'INITIAL',
             ),
             (
@@ -87,14 +87,24 @@ def main() -> int:
         ),
         'WAIT_FOR_START': (
             (
-                match_px(Point(5, 5), Color(b=0, g=0, r=0)),
+                match_exact(Point(5, 5), Color(b=16, g=16, r=16)),
                 do(),
                 'START',
+            ),
+            (
+                match_text(
+                    'Downloadable content cannot be played.',
+                    Point(y=266, x=374),
+                    Point(y=312, x=904),
+                    invert=False,
+                ),
+                do(Press('a'), Wait(.2), Press('A'), Wait(.5)),
+                'INITIAL',
             ),
         ),
         'START': (
             (
-                match_px(Point(5, 5), Color(b=0, g=0, r=0)),
+                match_exact(Point(5, 5), Color(b=16, g=16, r=16)),
                 do(),
                 'START',
             ),
@@ -104,7 +114,7 @@ def main() -> int:
             (
                 match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
                 # adjust this if needed
-                do(Press('w', duration=2.2), Wait(.5)),
+                Press('w', duration=2.25),
                 'WAIT_FOR_ENCOUNTER',
             ),
         ),
