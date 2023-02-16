@@ -118,7 +118,11 @@ def main() -> int:
             (
                 world,
                 # adjust this if needed
-                Press('w', duration=2.25),
+                do(
+                    Press('w', duration=.25),
+                    Press('B', duration=.05),
+                    Press('w', duration=1.65),
+                ),
                 'WAIT_FOR_ENCOUNTER',
             ),
         ),
