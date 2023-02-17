@@ -6,6 +6,8 @@ import time
 import numpy
 import serial
 
+from scripts._alarm import alarm
+from scripts._reset import reset
 from scripts.engine import all_match
 from scripts.engine import always_matches
 from scripts.engine import Color
@@ -32,14 +34,11 @@ def match_exact(px: Point, c: Color) -> Matcher:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', default=SERIAL_DEFAULT)
+    parser.add_argument('--quiet', action='store_true')
     args = parser.parse_args()
 
     vid = make_vid()
 
-    world = all_match(
-        match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
-        match_px(Point(y=701, x=14), Color(b=234, g=234, r=234)),
-    )
     dialog = all_match(
         match_px(Point(y=587, x=20), Color(b=48, g=48, r=48)),
         match_px(Point(y=672, x=1233), Color(b=48, g=48, r=48)),
@@ -112,23 +111,17 @@ def main() -> int:
                 do(),
                 'START',
             ),
-            (always_matches, do(Wait(.5), Press('A')), 'WORLD'),
+            (always_matches, do(Wait(1), Press('A')), 'WORLD'),
         ),
         'WORLD': (
             (
-                world,
-                # adjust this if needed
-                do(
-                    Press('w', duration=.25),
-                    Press('B', duration=.05),
-                    Press('w', duration=1.65),
+                all_match(
+                    match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
+                    match_px(Point(y=701, x=14), Color(b=234, g=234, r=234)),
                 ),
-                'WAIT_FOR_ENCOUNTER',
+                do(),
+                'WAIT_FOR_DIALOG',
             ),
-        ),
-        'WAIT_FOR_ENCOUNTER': (
-            (world, do(), 'WAIT_FOR_ENCOUNTER'),
-            (always_matches, do(), 'WAIT_FOR_DIALOG'),
         ),
         'WAIT_FOR_DIALOG': (
             (dialog, do(), 'DIALOG'),
@@ -142,24 +135,10 @@ def main() -> int:
             (dialog, record_end, 'CHECK'),
         ),
         'CHECK': (
-            (is_shiny, Press('H'), 'ALARM'),
-            (
-                always_matches,
-                do(
-                    Press('H'), Wait(1),
-                    Press('X'), Wait(.5),
-                    Press('A'), Wait(2),
-                ),
-                'INITIAL',
-            ),
+            (is_shiny, do(), 'ALARM'),
+            (always_matches, reset, 'INITIAL'),
         ),
-        'ALARM': (
-            (
-                always_matches,
-                do(Press('!'), Wait(.25), Press('.'), Wait(.25)),
-                'ALARM',
-            ),
-        ),
+        **alarm('ALARM', quiet=args.quiet),
     }
 
     with serial.Serial(args.serial, 9600) as ser:

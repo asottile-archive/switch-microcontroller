@@ -8,6 +8,8 @@ import cv2
 import numpy
 import serial
 
+from scripts._alarm import alarm
+from scripts._reset import reset
 from scripts.engine import always_matches
 from scripts.engine import do
 from scripts.engine import make_vid
@@ -65,6 +67,7 @@ def nonshiny_matches(frame: numpy.ndarray) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', default=SERIAL_DEFAULT)
+    parser.add_argument('--quiet', action='store_true')
     args = parser.parse_args()
 
     vid = make_vid()
@@ -108,24 +111,10 @@ def main() -> int:
             (world_matches, Wait(7.25), 'CHECK'),
         ),
         'CHECK': (
-            (
-                nonshiny_matches,
-                do(
-                    Press('H'), Wait(1),
-                    Press('X'), Wait(.5),
-                    Press('A'), Wait(2),
-                ),
-                'INITIAL',
-            ),
+            (nonshiny_matches, reset, 'INITIAL'),
             (always_matches, do(Press('H'), Wait(1)), 'ALARM'),
         ),
-        'ALARM': (
-            (
-                always_matches,
-                do(Press('!'), Wait(.25), Press('.'), Wait(.25)),
-                'ALARM',
-            ),
-        ),
+        **alarm('ALARM', quiet=args.quiet),
     }
 
     with serial.Serial(args.serial, 9600) as ser:
