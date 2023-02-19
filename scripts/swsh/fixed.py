@@ -75,8 +75,10 @@ def main() -> int:
                     ),
                 ),
                 do(Press('A'), Wait(1.5)),
-                'INITIAL',
+                'SELECT_USER',
             ),
+        ),
+        'SELECT_USER': (
             (
                 match_text(
                     'Select a user.',
@@ -111,7 +113,11 @@ def main() -> int:
                 do(),
                 'START',
             ),
-            (always_matches, do(Wait(1), Press('A')), 'WORLD'),
+            (
+                always_matches,
+                do(Wait(.5), Press('A'), Wait(1), Press('A')),
+                'WORLD',
+            ),
         ),
         'WORLD': (
             (
