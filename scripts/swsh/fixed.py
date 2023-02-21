@@ -40,10 +40,10 @@ def main() -> int:
     vid = make_vid()
 
     dialog = all_match(
-        match_px(Point(y=587, x=20), Color(b=48, g=48, r=48)),
-        match_px(Point(y=672, x=1233), Color(b=48, g=48, r=48)),
-        match_px(Point(y=683, x=1132), Color(b=59, g=59, r=59)),
-        match_px(Point(y=587, x=107), Color(b=59, g=59, r=59)),
+        match_exact(Point(y=587, x=20), Color(b=48, g=48, r=48)),
+        match_exact(Point(y=672, x=1233), Color(b=48, g=48, r=48)),
+        match_exact(Point(y=683, x=1132), Color(b=59, g=59, r=59)),
+        match_exact(Point(y=587, x=107), Color(b=59, g=59, r=59)),
     )
 
     t0 = t1 = 0.
