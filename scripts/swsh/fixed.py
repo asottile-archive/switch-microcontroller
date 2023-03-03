@@ -92,7 +92,7 @@ def main() -> int:
         ),
         'WAIT_FOR_START': (
             (
-                match_exact(Point(5, 5), Color(b=16, g=16, r=16)),
+                match_exact(Point(700, 30), Color(b=16, g=16, r=16)),
                 do(),
                 'START',
             ),
@@ -109,7 +109,7 @@ def main() -> int:
         ),
         'START': (
             (
-                match_exact(Point(5, 5), Color(b=16, g=16, r=16)),
+                match_exact(Point(700, 30), Color(b=16, g=16, r=16)),
                 do(),
                 'START',
             ),
