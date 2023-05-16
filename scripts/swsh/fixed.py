@@ -9,6 +9,7 @@ import serial
 from scripts._alarm import alarm
 from scripts._game_crash import GameCrash
 from scripts._reset import reset
+from scripts.engine import Action
 from scripts.engine import all_match
 from scripts.engine import always_matches
 from scripts.engine import Color
@@ -36,9 +37,27 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', default=SERIAL_DEFAULT)
     parser.add_argument('--quiet', action='store_true')
+    parser.add_argument(
+        '--mode',
+        choices=('fixed', 'runup', 'whistle'),
+        default='fixed',
+    )
     args = parser.parse_args()
 
     vid = make_vid()
+
+    if args.mode == 'fixed':
+        startup: tuple[Action, ...] = ()
+    elif args.mode == 'runup':
+        startup = (
+            Press('w', duration=.25),
+            Press('B', duration=.05),
+            Press('w', duration=1.05),
+        )
+    elif args.mode == 'whistle':
+        startup = (Press('{', duration=.05), Wait(1)) * 7
+    else:
+        raise NotImplementedError(args.mode)
 
     game_crash = GameCrash()
 
@@ -48,6 +67,15 @@ def main() -> int:
         match_exact(Point(y=683, x=1132), Color(b=59, g=59, r=59)),
         match_exact(Point(y=587, x=107), Color(b=59, g=59, r=59)),
     )
+
+    t_timeout = 0.
+
+    def encounter_timeout_start(vid: object, ser: object) -> None:
+        nonlocal t_timeout
+        t_timeout = time.monotonic()
+
+    def encounter_timeout(frame: object) -> bool:
+        return time.monotonic() - t_timeout > 10
 
     t0 = t1 = 0.
 
@@ -134,12 +162,16 @@ def main() -> int:
                     match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
                     match_px(Point(y=701, x=14), Color(b=234, g=234, r=234)),
                 ),
-                do(),
+                do(
+                    *startup,
+                    encounter_timeout_start,
+                ),
                 'WAIT_FOR_DIALOG',
             ),
             (game_crash.check, do(Press('A'), Wait(1)), 'INITIAL'),
         ),
         'WAIT_FOR_DIALOG': (
+            (encounter_timeout, reset, 'INITIAL'),
             (dialog, do(), 'DIALOG'),
             (always_matches, do(), 'WAIT_FOR_DIALOG'),
         ),
