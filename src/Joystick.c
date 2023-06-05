@@ -16,9 +16,8 @@ const __flash command STARTUP[] = {
     { TRIGGERS,   5 },    { NOTHING,  150 },
     { A,          5 },    { NOTHING,  250 },
 
-    // Go into game
-    { HOME,       5 },    { NOTHING,  250 },
-    { A,          5 },    { NOTHING,  250 },
+    // go to home screen
+    { HOME,       5 },
 };
 const int STARTUP_LENGTH = sizeof(STARTUP) / sizeof(command);
 
