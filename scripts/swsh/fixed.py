@@ -106,18 +106,6 @@ def main() -> int:
                     ),
                 ),
                 do(Press('A'), Wait(1.5)),
-                'SELECT_USER',
-            ),
-        ),
-        'SELECT_USER': (
-            (
-                match_text(
-                    'Select a user.',
-                    Point(y=336, x=60),
-                    Point(y=378, x=240),
-                    invert=False,
-                ),
-                do(Press('A'), Wait(1)),
                 'WAIT_FOR_START',
             ),
         ),

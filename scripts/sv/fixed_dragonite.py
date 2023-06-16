@@ -82,16 +82,6 @@ def main() -> int:
                     invert=False,
                 ),
                 do(Press('A'), Wait(1)),
-                'INITIAL',
-            ),
-            (
-                match_text(
-                    'Select a user.',
-                    Point(y=336, x=60),
-                    Point(y=378, x=240),
-                    invert=False,
-                ),
-                do(Press('A'), Wait(1)),
                 'START',
             ),
         ),
