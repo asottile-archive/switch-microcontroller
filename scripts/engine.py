@@ -154,6 +154,13 @@ def match_px(point: Point, *colors: Color) -> Matcher:
     return match_px_impl
 
 
+def match_px_exact(px: Point, c: Color) -> Matcher:
+    def match_px_exact_impl(frame: numpy.ndarray) -> bool:
+        pt = px.norm(frame.shape)
+        return numpy.array_equal(frame[pt.y][pt.x], c)
+    return match_px_exact_impl
+
+
 def get_text(
         frame: numpy.ndarray,
         top_left: Point,
@@ -235,6 +242,19 @@ def run(
         states: States,
         transition_timeout: int = 420,
 ) -> NoReturn:
+    all_s = set(states)
+    all_t = {
+        t
+        for k, v in states.items()
+        for _, _, t in v
+    }
+    unused = sorted(all_s - all_t)
+    if unused:
+        raise AssertionError(f'unused states: {", ".join(unused)}')
+    missing = sorted(all_t - all_s - {'UNREACHABLE'})
+    if missing:
+        raise AssertionError(f'missing states: {", ".join(missing)}')
+
     t0 = time.monotonic()
     state = initial
 

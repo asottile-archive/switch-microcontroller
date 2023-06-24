@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import time
 
-import numpy
 import serial
 
 from scripts._alarm import alarm
@@ -16,21 +15,14 @@ from scripts.engine import Color
 from scripts.engine import do
 from scripts.engine import make_vid
 from scripts.engine import match_px
+from scripts.engine import match_px_exact
 from scripts.engine import match_text
-from scripts.engine import Matcher
 from scripts.engine import Point
 from scripts.engine import Press
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
-
-
-def match_exact(px: Point, c: Color) -> Matcher:
-    def match_exact_impl(frame: numpy.ndarray) -> bool:
-        pt = px.norm(frame.shape)
-        return numpy.array_equal(frame[pt.y][pt.x], c)
-    return match_exact_impl
 
 
 def main() -> int:
@@ -62,10 +54,10 @@ def main() -> int:
     game_crash = GameCrash()
 
     dialog = all_match(
-        match_exact(Point(y=587, x=20), Color(b=48, g=48, r=48)),
-        match_exact(Point(y=672, x=1233), Color(b=48, g=48, r=48)),
-        match_exact(Point(y=683, x=1132), Color(b=59, g=59, r=59)),
-        match_exact(Point(y=587, x=107), Color(b=59, g=59, r=59)),
+        match_px_exact(Point(y=587, x=20), Color(b=48, g=48, r=48)),
+        match_px_exact(Point(y=672, x=1233), Color(b=48, g=48, r=48)),
+        match_px_exact(Point(y=683, x=1132), Color(b=59, g=59, r=59)),
+        match_px_exact(Point(y=587, x=107), Color(b=59, g=59, r=59)),
     )
 
     t_timeout = 0.
@@ -111,7 +103,7 @@ def main() -> int:
         ),
         'WAIT_FOR_START': (
             (
-                match_exact(Point(700, 30), Color(b=16, g=16, r=16)),
+                match_px_exact(Point(700, 30), Color(b=16, g=16, r=16)),
                 do(),
                 'START',
             ),
@@ -128,7 +120,7 @@ def main() -> int:
         ),
         'START': (
             (
-                match_exact(Point(700, 30), Color(b=16, g=16, r=16)),
+                match_px_exact(Point(700, 30), Color(b=16, g=16, r=16)),
                 do(),
                 'START',
             ),
