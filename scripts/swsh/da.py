@@ -85,7 +85,7 @@ def main() -> int:
             get_text(
                 frame,
                 Point(y=5, x=1209),
-                Point(y=41, x=1273),
+                Point(y=42, x=1276),
                 invert=True,
             ),
         )
