@@ -107,6 +107,10 @@ def main() -> int:
     def should_reset_check(frame: object) -> bool:
         return should_reset
 
+    def should_reset_clear(vid: object, ser: object) -> None:
+        nonlocal should_reset
+        should_reset = True
+
     chosen_pokemon = -1
 
     def pick_pokemon(frame: numpy.ndarray) -> bool:
@@ -633,7 +637,7 @@ def main() -> int:
         'REWARD': (
             (
                 reward_header,
-                do(Press('A'), Wait(5)),
+                do(Press('A'), Wait(5), should_reset_clear),
                 'WAIT_FOR_AFTER_TEXT',
             ),
         ),
