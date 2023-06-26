@@ -346,7 +346,7 @@ def main() -> int:
         summary_counter += 1
 
     def summary_counter_enough(frame: object) -> bool:
-        return summary_counter > 3
+        return summary_counter == 3
 
     def is_shiny(frame: numpy.ndarray) -> bool:
         crop = frame[382:417, 97:184]
