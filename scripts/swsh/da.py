@@ -493,7 +493,6 @@ def main() -> int:
             (always_matches, do(move_to_pokemon, Press('A')), 'OVERWORLD'),
         ),
         'OVERWORLD': (
-            # TODO: route intelligently by types?
             (
                 all_match(
                     match_px(Point(y=709, x=1111), Color(b=16, g=16, r=16)),
@@ -505,7 +504,7 @@ def main() -> int:
                         invert=True,
                     ),
                 ),
-                route,  # do(Press('A'), Wait(5)),
+                route,
                 'OVERWORLD',
             ),
             (
