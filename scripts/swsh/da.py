@@ -81,14 +81,14 @@ def main() -> int:
     def should_reset_record(frame: numpy.ndarray) -> bool:
         nonlocal should_reset
 
-        current_ore = int(
-            get_text(
-                frame,
-                Point(y=5, x=1209),
-                Point(y=42, x=1276),
-                invert=True,
-            ),
+        current_ore_text = get_text(
+            frame,
+            Point(y=5, x=1209),
+            Point(y=42, x=1276),
+            invert=True,
         )
+        # sometimes the ocr engine gets 1 and l confused
+        current_ore = int(current_ore_text.replace('l', '1'))
         request_text = get_text(
             frame,
             Point(y=590, x=575),
