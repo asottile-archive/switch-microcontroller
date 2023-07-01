@@ -145,7 +145,11 @@ def main() -> int:
         for _ in range(chosen_pokemon):
             do(Press('s'), Wait(.5))(vid, ser)
 
+    route_score = 0
+
     def route(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+        nonlocal route_score
+
         def _info() -> tuple[int, int]:
             frame = getframe(vid)
             bw = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -201,6 +205,8 @@ def main() -> int:
                 best_pos, best_n = pos, n
 
             do(Press('d'), Wait(.5))(vid, ser)
+
+        route_score = best_n
 
         pos, _ = _info()
         while pos != best_pos:
@@ -326,8 +332,9 @@ def main() -> int:
 
         if not text[:1].isupper() or not text[1:].islower():
             cv2.imwrite(f'screens/{len(os.listdir("screens")):02}.png', frame)
-        catch = text.lower() in pokemon
+        catch = route_score > 0 and text.lower() in pokemon
         print(f'encountered: {text}')
+        print(f'route score: {route_score}')
         print(f'will be catching? {catch}')
 
         do(Press('B'), Wait(.5), Press('B'), Wait(.5))(vid, ser)
