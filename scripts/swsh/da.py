@@ -293,21 +293,44 @@ def main() -> int:
 
     catch = False
 
-    def catch_record(frame: numpy.ndarray) -> bool:
+    def catch_record(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         nonlocal catch
 
-        text = get_text(
-            frame,
-            Point(y=22, x=453),
-            Point(y=73, x=820),
-            invert=True,
-        )
-        # sometimes this gets weird extra text
-        catch = bool(pokemon & frozenset(text.lower().split()))
+        do(Press('A'), Wait(.5), Press('A'), Wait(1))(vid, ser)
+
+        frame = getframe(vid)
+        if match_px(Point(y=266, x=729), Color(b=16, g=16, r=16))(frame):
+            print('attacking move, black background')
+            text = get_text(
+                frame,
+                Point(y=264, x=591),
+                Point(y=288, x=705),
+                invert=True,
+            )
+        elif match_px(Point(y=260, x=610), Color(b=234, g=234, r=234))(frame):
+            print('attacking move')
+            text = get_text(
+                frame,
+                Point(y=264, x=591),
+                Point(y=288, x=705),
+                invert=False,
+            )
+        else:
+            print('status move')
+            text = get_text(
+                frame,
+                Point(y=275, x=594),
+                Point(y=298, x=687),
+                invert=False,
+            )
+
+        if not text[:1].isupper() or not text[1:].islower():
+            cv2.imwrite(f'screens/{len(os.listdir("screens")):02}.png', frame)
+        catch = text.lower() in pokemon
         print(f'encountered: {text}')
         print(f'will be catching? {catch}')
 
-        return True
+        do(Press('B'), Wait(.5), Press('B'), Wait(.5))(vid, ser)
 
     def catch_check(frame: object) -> bool:
         return catch
@@ -534,10 +557,7 @@ def main() -> int:
                 do(Press('A'), Wait(3)),
                 'OVERWORLD',
             ),
-            (fight_menu, do(), 'START_BATTLE'),
-        ),
-        'START_BATTLE': (
-            (catch_record, do(), 'BATTLE'),
+            (fight_menu, catch_record, 'BATTLE'),
         ),
         'BATTLE': (
             (
