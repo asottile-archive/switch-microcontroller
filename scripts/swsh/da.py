@@ -302,42 +302,24 @@ def main() -> int:
     def catch_record(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         nonlocal catch
 
-        do(Press('A'), Wait(.5), Press('A'), Wait(1))(vid, ser)
-
-        frame = getframe(vid)
-        if match_px(Point(y=266, x=729), Color(b=16, g=16, r=16))(frame):
-            print('attacking move, black background')
+        while True:
             text = get_text(
-                frame,
-                Point(y=264, x=591),
-                Point(y=288, x=705),
+                getframe(vid),
+                Point(y=592, x=108),
+                Point(y=640, x=497),
                 invert=True,
             )
-        elif match_px(Point(y=260, x=610), Color(b=234, g=234, r=234))(frame):
-            print('attacking move')
-            text = get_text(
-                frame,
-                Point(y=264, x=591),
-                Point(y=288, x=705),
-                invert=False,
-            )
-        else:
-            print('status move')
-            text = get_text(
-                frame,
-                Point(y=275, x=594),
-                Point(y=298, x=687),
-                invert=False,
-            )
+            print(f'raw text: {text}')
 
-        if not text[:1].isupper() or not text[1:].islower():
-            cv2.imwrite(f'screens/{len(os.listdir("screens")):02}.png', frame)
-        catch = route_score > 0 and text.lower() in pokemon
+            if text.endswith(' appeared!'):
+                break
+
+        text = text.removesuffix(' appeared!').lower()
+
+        catch = route_score > 0 and text in pokemon
         print(f'encountered: {text}')
         print(f'route score: {route_score}')
         print(f'will be catching? {catch}')
-
-        do(Press('B'), Wait(.5), Press('B'), Wait(.5))(vid, ser)
 
     def catch_check(frame: object) -> bool:
         return catch
@@ -396,20 +378,6 @@ def main() -> int:
         Point(y=596, x=272),
         Point(y=636, x=799),
         invert=False,
-    )
-    fight_menu = all_match(
-        any_match(
-            match_px(Point(y=492, x=1196), Color(b=103, g=74, r=243)),
-            # different color while dynamaxed for some reason???
-            match_px(Point(y=493, x=1195), Color(b=52, g=0, r=175)),
-        ),
-        match_px(Point(y=498, x=1169), Color(b=16, g=16, r=16)),
-        match_text(
-            'Fight',
-            Point(y=502, x=1056),
-            Point(y=539, x=1123),
-            invert=True,
-        ),
     )
     reward_header = all_match(
         match_px(Point(y=61, x=665), Color(b=16, g=16, r=16)),
@@ -525,6 +493,18 @@ def main() -> int:
         'OVERWORLD': (
             (
                 all_match(
+                    match_px(Point(y=86, x=480), Color(b=15, g=237, r=31)),
+                    match_px(Point(y=88, x=604), Color(b=7, g=241, r=23)),
+                    match_px(Point(y=87, x=793), Color(b=20, g=238, r=30)),
+                    match_px(Point(y=605, x=35), Color(b=48, g=48, r=48)),
+                    match_px(Point(y=606, x=657), Color(b=59, g=59, r=59)),
+                    match_px(Point(y=614, x=1246), Color(b=48, g=48, r=48)),
+                ),
+                catch_record,
+                'BATTLE',
+            ),
+            (
+                all_match(
                     match_px(Point(y=709, x=1111), Color(b=16, g=16, r=16)),
                     match_px(Point(y=646, x=503), Color(b=59, g=59, r=59)),
                     match_text(
@@ -564,7 +544,6 @@ def main() -> int:
                 do(Press('A'), Wait(3)),
                 'OVERWORLD',
             ),
-            (fight_menu, catch_record, 'BATTLE'),
         ),
         'BATTLE': (
             (
@@ -608,7 +587,30 @@ def main() -> int:
                 do(),
                 'DECIDE_CATCH',
             ),
-            (fight_menu, do(Press('A'), Wait(.75)), 'MAYBE_DMAX'),
+            (
+                all_match(
+                    any_match(
+                        match_px(
+                            Point(y=492, x=1196),
+                            Color(b=103, g=74, r=243),
+                        ),
+                        # different color while dynamaxed for some reason???
+                        match_px(
+                            Point(y=493, x=1195),
+                            Color(b=52, g=0, r=175),
+                        ),
+                    ),
+                    match_px(Point(y=498, x=1169), Color(b=16, g=16, r=16)),
+                    match_text(
+                        'Fight',
+                        Point(y=502, x=1056),
+                        Point(y=539, x=1123),
+                        invert=True,
+                    ),
+                ),
+                do(Press('A'), Wait(.75)),
+                'MAYBE_DMAX',
+            ),
         ),
         'MAYBE_DMAX': (
             (
