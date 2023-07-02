@@ -488,7 +488,7 @@ def main() -> int:
         'PAY_TAX_RECORD_RESET': (
             (
                 should_reset_record,
-                do(Press('A'), Wait(.75), Press('A'), Wait(.75)),
+                do(Press('A'), Wait(1), Press('A'), Wait(1)),
                 'INITIAL',
             ),
         ),
