@@ -111,12 +111,12 @@ def main() -> int:
         nonlocal should_reset
         should_reset = True
 
-    chosen_pokemon = -1
+    def pick_pokemon(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+        frame = getframe(vid)
 
-    def pick_pokemon(frame: numpy.ndarray) -> bool:
-        nonlocal chosen_pokemon
-
+        chosen_pokemon = 0
         max_stat = -1
+
         for i, locs in enumerate((
             (
                 (Point(y=140, x=1193), Point(y=166, x=1244)),
@@ -138,12 +138,9 @@ def main() -> int:
                     max_stat = stat
 
         print(f'picking pokemon: {chosen_pokemon}')
-
-        return True
-
-    def move_to_pokemon(vid: object, ser: serial.Serial) -> None:
         for _ in range(chosen_pokemon):
             do(Press('s'), Wait(.5))(vid, ser)
+        Press('A')(vid, ser)
 
     route_score = 0
 
@@ -480,15 +477,9 @@ def main() -> int:
                     Point(y=278, x=434),
                     invert=False,
                 ),
-                do(Press('+'), Wait(.5)),
-                'LOOK_AT_POKEMON',
+                do(Press('+'), Wait(.5), pick_pokemon),
+                'OVERWORLD',
             ),
-        ),
-        'LOOK_AT_POKEMON': (
-            (pick_pokemon, do(), 'SELECT_POKEMON'),
-        ),
-        'SELECT_POKEMON': (
-            (always_matches, do(move_to_pokemon, Press('A')), 'OVERWORLD'),
         ),
         'OVERWORLD': (
             (
