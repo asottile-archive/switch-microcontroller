@@ -78,9 +78,10 @@ def main() -> int:
 
     should_reset = True
 
-    def should_reset_record(frame: numpy.ndarray) -> bool:
+    def should_reset_record(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         nonlocal should_reset
 
+        frame = getframe(vid)
         current_ore_text = get_text(
             frame,
             Point(y=5, x=1209),
@@ -101,8 +102,6 @@ def main() -> int:
         should_reset = (current_ore - requested_ore - next_ore) >= 0
         print(f'current ore: {current_ore}, requested: {requested_ore}')
         print(f'should reset? {should_reset}')
-
-        return True
 
     def should_reset_check(frame: object) -> bool:
         return should_reset
@@ -370,27 +369,12 @@ def main() -> int:
         print(f'is shiny? {ret} ({count} reds)')
         return ret
 
-    pay_tax_text = match_text(
-        'It seems that you keep quitting your',
-        Point(y=596, x=272),
-        Point(y=636, x=799),
-        invert=False,
-    )
     reward_header = all_match(
         match_px(Point(y=61, x=665), Color(b=16, g=16, r=16)),
         match_text(
             'Reward',
             Point(y=66, x=874),
             Point(y=101, x=992),
-            invert=True,
-        ),
-    )
-    caught_header = all_match(
-        match_px(Point(y=61, x=665), Color(b=16, g=16, r=16)),
-        match_text(
-            'Caught',
-            Point(y=64, x=947),
-            Point(y=107, x=1064),
             invert=True,
         ),
     )
@@ -403,11 +387,25 @@ def main() -> int:
                     match_px(Point(y=701, x=14), Color(b=234, g=234, r=234)),
                 ),
                 do(Wait(.5), Press('A')),
-                'IS_TAX_DUE',
+                'MAYBE_PAY_TAX',
             ),
         ),
-        'IS_TAX_DUE': (
-            (pay_tax_text, do(), 'PAY_TAX'),
+        'MAYBE_PAY_TAX': (
+            (
+                match_text(
+                    'Would you like to embark upon a',
+                    Point(y=596, x=272),
+                    Point(y=637, x=763),
+                    invert=False,
+                ),
+                do(
+                    Press('A'), Wait(.75),
+                    Press('A'), Wait(.75),
+                    Press('A'), Wait(.75),
+                    Press('A'), Wait(.75),
+                ),
+                'NO_INVITE',
+            ),
             (
                 match_text(
                     'you quit your last',
@@ -424,9 +422,9 @@ def main() -> int:
             ),
             (
                 match_text(
-                    'Would you like to embark upon a',
+                    'It seems that you keep quitting your',
                     Point(y=596, x=272),
-                    Point(y=637, x=763),
+                    Point(y=636, x=799),
                     invert=False,
                 ),
                 do(
@@ -434,26 +432,10 @@ def main() -> int:
                     Press('A'), Wait(.75),
                     Press('A'), Wait(.75),
                     Press('A'), Wait(.75),
+                    should_reset_record,
+                    Press('A'), Wait(1),
+                    Press('A'), Wait(1),
                 ),
-                'NO_INVITE',
-            ),
-        ),
-        'PAY_TAX': (
-            (
-                pay_tax_text,
-                do(
-                    Press('A'), Wait(.75),
-                    Press('A'), Wait(.75),
-                    Press('A'), Wait(.75),
-                    Press('A'), Wait(.75),
-                ),
-                'PAY_TAX_RECORD_RESET',
-            ),
-        ),
-        'PAY_TAX_RECORD_RESET': (
-            (
-                should_reset_record,
-                do(Press('A'), Wait(1), Press('A'), Wait(1)),
                 'INITIAL',
             ),
         ),
@@ -551,7 +533,24 @@ def main() -> int:
                 'BATTLE',
             ),
             (reward_header, do(), 'REWARD'),
-            (caught_header, do(), 'CHECK'),
+            (
+                all_match(
+                    match_px(Point(y=61, x=665), Color(b=16, g=16, r=16)),
+                    match_text(
+                        'Caught',
+                        Point(y=64, x=947),
+                        Point(y=107, x=1064),
+                        invert=True,
+                    ),
+                ),
+                do(
+                    Press('A'), Wait(.5),
+                    Press('s'), Wait(.5),
+                    Press('A'), Wait(1.5),
+                    summary_counter_reset,
+                ),
+                'CHECK_SUMMARY',
+            ),
             (
                 all_match(
                     match_px(Point(y=600, x=901), Color(b=234, g=234, r=234)),
@@ -674,18 +673,6 @@ def main() -> int:
                 'DO_NOT_REMEMBER',
             ),
             (always_matches, do(), 'INITIAL'),
-        ),
-        'CHECK': (
-            (
-                caught_header,
-                do(
-                    Press('A'), Wait(.5),
-                    Press('s'), Wait(.5),
-                    Press('A'), Wait(1.5),
-                    summary_counter_reset,
-                ),
-                'CHECK_SUMMARY',
-            ),
         ),
         'CHECK_SUMMARY': (
             (
