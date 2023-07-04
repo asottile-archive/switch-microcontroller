@@ -546,7 +546,7 @@ def main() -> int:
                 do(
                     Press('A'), Wait(.5),
                     Press('s'), Wait(.5),
-                    Press('A'), Wait(1.5),
+                    Press('A'), Wait(2),
                     summary_counter_reset,
                 ),
                 'CHECK_SUMMARY',
@@ -683,7 +683,7 @@ def main() -> int:
             (is_shiny, do(), 'ALARM'),
             (
                 always_matches,
-                do(Wait(.5), Press('s'), summary_counter_increment),
+                do(Press('s'), Wait(.5), summary_counter_increment),
                 'CHECK_SUMMARY',
             ),
         ),
