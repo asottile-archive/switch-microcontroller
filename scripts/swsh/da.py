@@ -116,20 +116,35 @@ def main() -> int:
         chosen_pokemon = 0
         max_stat = -1
 
-        for i, locs in enumerate((
+        for i, ((pok_tl, pok_br), locs) in enumerate((
             (
-                (Point(y=140, x=1193), Point(y=166, x=1244)),
-                (Point(y=178, x=978), Point(y=204, x=1028)),
+                (Point(y=209, x=623), Point(y=235, x=748)),
+                (
+                    (Point(y=140, x=1193), Point(y=166, x=1244)),
+                    (Point(y=178, x=978), Point(y=204, x=1028)),
+                ),
             ),
             (
-                (Point(y=327, x=1193), Point(y=353, x=1244)),
-                (Point(y=365, x=974), Point(y=390, x=1025)),
+                (Point(y=395, x=620), Point(y=423, x=758)),
+                (
+                    (Point(y=327, x=1193), Point(y=353, x=1244)),
+                    (Point(y=365, x=974), Point(y=390, x=1025)),
+                ),
             ),
             (
-                (Point(y=513, x=1198), Point(y=541, x=1246)),
-                (Point(y=551, x=972), Point(y=578, x=1023)),
+                (Point(y=580, x=622), Point(y=607, x=745)),
+                (
+                    (Point(y=513, x=1198), Point(y=541, x=1246)),
+                    (Point(y=551, x=972), Point(y=578, x=1023)),
+                ),
             ),
         )):
+            name = get_text(frame, pok_tl, pok_br, invert=i == 0)
+            print(f'pokemon({i}): {name}')
+            if name in {'Unfezant', 'Whiscash'}:
+                print('=> skipping bad pokemon')
+                continue
+
             for tl, br in locs:
                 stat = get_int(frame, tl, br, invert=False, default=0)
                 if stat > max_stat:
