@@ -31,6 +31,11 @@ from scripts.engine import States
 from scripts.engine import Wait
 
 WORD = re.compile('[a-z]+')
+TYPES = frozenset((
+    'normal', 'fire', 'water', 'grass', 'electric', 'ice', 'fighting',
+    'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dark',
+    'dragon', 'steel', 'fairy',
+))
 
 
 @functools.lru_cache(maxsize=1)
@@ -71,7 +76,7 @@ def main() -> int:
     with open(args.pokemon) as f:
         for line in f:
             parts = line.split()
-            pokemon.add(parts[0])
+            pokemon.add(tuple(parts))
             types.update(parts[1:])
 
     vid = make_vid()
@@ -156,11 +161,7 @@ def main() -> int:
             do(Press('s'), Wait(.5))(vid, ser)
         Press('A')(vid, ser)
 
-    route_score = 0
-
     def route(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
-        nonlocal route_score
-
         def _info() -> tuple[int, int]:
             frame = getframe(vid)
             bw = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -216,8 +217,6 @@ def main() -> int:
                 best_pos, best_n = pos, n
 
             do(Press('d'), Wait(.5))(vid, ser)
-
-        route_score = best_n
 
         pos, _ = _info()
         while pos != best_pos:
@@ -313,23 +312,32 @@ def main() -> int:
     def catch_record(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
         nonlocal catch
 
-        while True:
-            text = get_text(
-                getframe(vid),
-                Point(y=592, x=108),
-                Point(y=640, x=497),
-                invert=True,
-            )
-            print(f'raw text: {text}')
+        frame = getframe(vid)
 
-            if text.endswith(' appeared!'):
-                break
+        name = get_text(
+            frame,
+            Point(y=78, x=259),
+            Point(y=117, x=445),
+            invert=False,
+        ).lower()
 
-        text = text.removesuffix(' appeared!').lower()
+        def get_type(tl: Point, br: Point) -> str:
+            text = get_text(frame, tl, br, invert=True).lower()
+            match = WORD.search(text)
+            assert match is not None
+            return match[0]
 
-        catch = route_score > 0 and text in pokemon
-        print(f'encountered: {text}')
-        print(f'route score: {route_score}')
+        type1 = get_type(Point(y=128, x=306), Point(y=153, x=399))
+        type2 = get_type(Point(y=128, x=448), Point(y=153, x=545))
+
+        print(f'raw: {(name, type1, type2)}')
+        if type2 in TYPES:
+            key: tuple[str, ...] = (name, type1, type2)
+        else:
+            key = (name, type1)
+
+        catch = key in pokemon
+        print(f'encountered: {key}')
         print(f'will be catching? {catch}')
 
     def catch_check(frame: object) -> bool:
@@ -481,14 +489,24 @@ def main() -> int:
         'OVERWORLD': (
             (
                 all_match(
-                    match_px(Point(y=86, x=480), Color(b=15, g=237, r=31)),
-                    match_px(Point(y=88, x=604), Color(b=7, g=241, r=23)),
-                    match_px(Point(y=87, x=793), Color(b=20, g=238, r=30)),
-                    match_px(Point(y=605, x=35), Color(b=48, g=48, r=48)),
-                    match_px(Point(y=606, x=657), Color(b=59, g=59, r=59)),
-                    match_px(Point(y=614, x=1246), Color(b=48, g=48, r=48)),
+                    match_px(Point(y=87, x=767), Color(b=29, g=233, r=36)),
+                    match_px(Point(y=364, x=1150), Color(b=16, g=16, r=16)),
+                    match_px(Point(y=364, x=1164), Color(b=234, g=234, r=234)),
+                    match_text(
+                        'Info',
+                        Point(y=360, x=1196),
+                        Point(y=381, x=1236),
+                        invert=False,
+                    ),
                 ),
-                catch_record,
+                do(
+                    Press('Y'), Wait(1),
+                    Press('w'), Wait(.5),
+                    Press('A'), Wait(1),
+                    catch_record,
+                    Press('B'), Wait(1),
+                    Press('B'), Wait(1),
+                ),
                 'BATTLE',
             ),
             (
