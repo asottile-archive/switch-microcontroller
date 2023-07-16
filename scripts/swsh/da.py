@@ -141,7 +141,7 @@ def main() -> int:
         )):
             name = get_text(frame, pok_tl, pok_br, invert=i == 0)
             print(f'pokemon({i}): {name}')
-            if name in {'Unfezant', 'Whiscash'}:
+            if name in {'Unfezant', 'Whiscash', 'Mr. Mime'}:
                 print('=> skipping bad pokemon')
                 continue
 
