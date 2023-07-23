@@ -8,19 +8,17 @@ import serial
 from scripts._alarm import alarm
 from scripts._reset import reset
 from scripts.engine import Action
-from scripts.engine import all_match
 from scripts.engine import always_matches
-from scripts.engine import Color
 from scripts.engine import do
 from scripts.engine import make_vid
-from scripts.engine import match_px_exact
-from scripts.engine import Point
 from scripts.engine import Press
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
 from scripts.swsh._bootup import bootup
+from scripts.swsh._dialog_shiny_check import dialog
+from scripts.swsh._dialog_shiny_check import dialog_shiny_check
 
 
 def main() -> int:
@@ -49,13 +47,6 @@ def main() -> int:
     else:
         raise NotImplementedError(args.mode)
 
-    dialog = all_match(
-        match_px_exact(Point(y=587, x=20), Color(b=48, g=48, r=48)),
-        match_px_exact(Point(y=672, x=1233), Color(b=48, g=48, r=48)),
-        match_px_exact(Point(y=683, x=1132), Color(b=59, g=59, r=59)),
-        match_px_exact(Point(y=587, x=107), Color(b=59, g=59, r=59)),
-    )
-
     t_timeout = 0.
 
     def encounter_timeout_start(vid: object, ser: object) -> None:
@@ -64,22 +55,6 @@ def main() -> int:
 
     def encounter_timeout(frame: object) -> bool:
         return time.monotonic() - t_timeout > 10
-
-    t0 = t1 = 0.
-
-    def record_start(vid: object, ser: object) -> None:
-        nonlocal t0
-        t0 = time.monotonic()
-
-    def record_end(vid: object, ser: object) -> None:
-        nonlocal t1
-        t1 = time.monotonic()
-
-    def is_shiny(frame: object) -> bool:
-        print(f'delay: {t1 - t0:.3f}')
-        if t1 - t0 >= 8:
-            raise AssertionError('fuckup')
-        return t1 - t0 > 1
 
     states: States = {
         **bootup('INITIAL', 'STARTUP'),
@@ -93,17 +68,9 @@ def main() -> int:
         'WAIT_FOR_DIALOG': (
             (encounter_timeout, reset, 'INITIAL'),
             (dialog, do(), 'DIALOG'),
-            (always_matches, do(), 'WAIT_FOR_DIALOG'),
         ),
-        'DIALOG': (
-            (dialog, record_start, 'DIALOG'),
-            (always_matches, do(), 'ANIMATION_END'),
-        ),
-        'ANIMATION_END': (
-            (dialog, record_end, 'CHECK'),
-        ),
-        'CHECK': (
-            (is_shiny, do(), 'ALARM'),
+        **dialog_shiny_check('DIALOG', 'RESET', 'ALARM'),
+        'RESET': (
             (always_matches, reset, 'INITIAL'),
         ),
         **alarm('ALARM', quiet=args.quiet),
