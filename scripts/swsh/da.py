@@ -21,7 +21,6 @@ from scripts.engine import get_text
 from scripts.engine import getframe
 from scripts.engine import make_vid
 from scripts.engine import match_px
-from scripts.engine import match_px_exact
 from scripts.engine import match_text
 from scripts.engine import Point
 from scripts.engine import Press
@@ -29,6 +28,7 @@ from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
+from scripts.swsh._bootup import bootup
 
 WORD = re.compile('[a-z]+')
 TYPES = frozenset((
@@ -742,55 +742,7 @@ def main() -> int:
                 'REWARD',
             ),
         ),
-        'STARTUP': (
-            (
-                all_match(
-                    match_px(Point(y=61, x=745), Color(b=217, g=217, r=217)),
-                    match_text(
-                        'Start',
-                        Point(y=669, x=1158),
-                        Point(y=700, x=1228),
-                        invert=False,
-                    ),
-                ),
-                do(Press('A'), Wait(1.5)),
-                'WAIT_FOR_START',
-            ),
-        ),
-        'WAIT_FOR_START': (
-            (
-                match_px_exact(Point(700, 30), Color(b=16, g=16, r=16)),
-                do(),
-                'START',
-            ),
-            (
-                match_text(
-                    'Downloadable content cannot be played.',
-                    Point(y=266, x=374),
-                    Point(y=312, x=904),
-                    invert=False,
-                ),
-                do(Press('a'), Wait(.2), Press('A'), Wait(.5)),
-                'STARTUP',
-            ),
-        ),
-        'START': (
-            (
-                match_px_exact(Point(700, 30), Color(b=16, g=16, r=16)),
-                do(),
-                'START',
-            ),
-            (
-                always_matches,
-                do(
-                    Wait(.5),
-                    Press('A'),
-                    Wait(1),
-                    Press('A'),
-                ),
-                'INITIAL',
-            ),
-        ),
+        **bootup('STARTUP', 'INITIAL'),
         **alarm('ALARM', quiet=args.quiet),
     }
 
