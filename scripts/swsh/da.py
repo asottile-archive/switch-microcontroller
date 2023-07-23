@@ -191,7 +191,16 @@ def main() -> int:
                     arrow_pos = Point(y=y, x=x)
 
             rects.sort(key=lambda p1_p2: p1_p2[0].x)
-            pos = int((arrow_pos.x - 200) / (len(frame[0]) - 200) * len(rects))
+
+            pos = 0
+            dist = 1e100
+            for i, (rect_tl, _) in enumerate(rects):
+                cand_dist = (
+                    (arrow_pos.x - rect_tl.x) ** 2 +
+                    (arrow_pos.y - rect_tl.y) ** 2
+                ) ** .5
+                if cand_dist < dist:
+                    pos, dist = i, cand_dist
 
             text = get_text(frame, *rects[pos], invert=True).lower()
             # sometimes the ocr engine sucks
