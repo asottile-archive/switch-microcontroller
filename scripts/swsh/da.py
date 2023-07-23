@@ -94,7 +94,7 @@ def main() -> int:
             invert=True,
         )
         # sometimes the ocr engine gets 1 and l confused
-        current_ore = int(current_ore_text.replace('l', '1'))
+        current_ore = int(current_ore_text.replace('l', '1').replace('A', '4'))
         request_text = get_text(
             frame,
             Point(y=590, x=575),
