@@ -24,6 +24,7 @@ from scripts.engine import States
 from scripts.engine import Wait
 from scripts.engine import Write
 from scripts.swsh._bootup import bootup
+from scripts.swsh._bootup import world
 from scripts.swsh._dialog_shiny_check import dialog
 from scripts.swsh._dialog_shiny_check import dialog_shiny_check
 
@@ -62,14 +63,14 @@ def main() -> int:
     states: States = {
         **bootup('INITIAL', 'STARTUP'),
         'STARTUP': (
-            (always_matches, Press('w', duration=5), 'SET'),
+            (always_matches, do(), 'SET'),
         ),
         'SET': (
             (always_matches, do(timeout_set, next_move, move_end), 'MOVE'),
         ),
         'MOVE': (
             (dialog, Write('0'), 'DIALOG'),
-            (timeout, reset, 'INITIAL'),
+            (all_match(timeout, world), reset, 'INITIAL'),
             (move_ended, do(next_move, move_end), 'MOVE'),
         ),
         **dialog_shiny_check('DIALOG', 'RUN', 'ALARM'),

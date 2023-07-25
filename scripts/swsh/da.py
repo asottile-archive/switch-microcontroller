@@ -29,6 +29,7 @@ from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
 from scripts.swsh._bootup import bootup
+from scripts.swsh._bootup import world
 
 WORD = re.compile('[a-z]+')
 TYPES = frozenset((
@@ -413,14 +414,7 @@ def main() -> int:
 
     states: States = {
         'INITIAL': (
-            (
-                all_match(
-                    match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
-                    match_px(Point(y=701, x=14), Color(b=234, g=234, r=234)),
-                ),
-                do(Wait(.5), Press('A')),
-                'MAYBE_PAY_TAX',
-            ),
+            (world, do(Wait(.5), Press('A')), 'MAYBE_PAY_TAX'),
         ),
         'MAYBE_PAY_TAX': (
             (

@@ -13,6 +13,11 @@ from scripts.engine import Press
 from scripts.engine import States
 from scripts.engine import Wait
 
+world = all_match(
+    match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
+    match_px(Point(y=701, x=14), Color(b=234, g=234, r=234)),
+)
+
 
 def bootup(begin: str, end: str) -> States:
     game_crash = GameCrash()
@@ -69,14 +74,7 @@ def bootup(begin: str, end: str) -> States:
             ),
         ),
         'BOOTUP_WORLD': (
-            (
-                all_match(
-                    match_px(Point(y=701, x=31), Color(b=239, g=88, r=44)),
-                    match_px(Point(y=701, x=14), Color(b=234, g=234, r=234)),
-                ),
-                do(),
-                end,
-            ),
+            (world, do(), end),
             (game_crash.check, do(Press('A'), Wait(1)), begin),
         ),
     }
