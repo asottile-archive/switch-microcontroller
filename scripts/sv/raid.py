@@ -61,7 +61,6 @@ def main() -> int:
     args = parser.parse_args()
 
     require_tesseract()
-    vid = make_vid()
 
     raid_color = Color(-1, -1, -1)
 
@@ -361,7 +360,7 @@ def main() -> int:
     }
 
     with serial.Serial(args.serial, 9600) as ser:
-        run(vid=vid, ser=ser, initial='INITIAL', states=states)
+        run(vid=make_vid(), ser=ser, initial='INITIAL', states=states)
 
 
 if __name__ == '__main__':

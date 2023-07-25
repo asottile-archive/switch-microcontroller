@@ -23,8 +23,6 @@ def main() -> int:
     parser.add_argument('--boxes', type=int, required=True)
     args = parser.parse_args()
 
-    vid = make_vid()
-
     box = 0
 
     def release_box(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
@@ -71,7 +69,7 @@ def main() -> int:
     }
 
     with serial.Serial(args.serial, 9600) as ser:
-        run(vid=vid, ser=ser, initial='INITIAL', states=states)
+        run(vid=make_vid(), ser=ser, initial='INITIAL', states=states)
 
 
 if __name__ == '__main__':

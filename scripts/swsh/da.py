@@ -80,8 +80,6 @@ def main() -> int:
             pokemon.add(tuple(parts))
             types.update(parts[1:])
 
-    vid = make_vid()
-
     should_reset = True
 
     def should_reset_record(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
@@ -741,7 +739,7 @@ def main() -> int:
     }
 
     with serial.Serial(args.serial, 9600) as ser:
-        run(vid=vid, ser=ser, initial='INITIAL', states=states)
+        run(vid=make_vid(), ser=ser, initial='INITIAL', states=states)
 
 
 if __name__ == '__main__':

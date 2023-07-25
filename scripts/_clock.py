@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import datetime
 
 import cv2
@@ -7,11 +8,15 @@ import numpy
 import serial
 
 from scripts.engine import always_matches
+from scripts.engine import bye
 from scripts.engine import do
 from scripts.engine import get_text
+from scripts.engine import make_vid
 from scripts.engine import match_text
 from scripts.engine import Point
 from scripts.engine import Press
+from scripts.engine import run
+from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
 
@@ -29,12 +34,12 @@ def clock(dt: datetime.datetime, name: str, end: str) -> States:
             s = 'w' if n > found_n else 's'
             diff = abs(found_n - n)
             if diff >= 10:
-                duration = 1.
+                duration = .8
             elif diff >= 5:
-                duration = .5
+                duration = .4
             else:
                 duration = .1
-            do(Press(s, duration=duration), Wait(.1))(vid, ser)
+            do(Press(s, duration=duration), Wait(.3))(vid, ser)
 
         return {
             s: (
@@ -111,3 +116,23 @@ def clock(dt: datetime.datetime, name: str, end: str) -> States:
             (always_matches, do(Press('s'), Wait(.1)), f'{name}_AM'),
         ),
     }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--serial', default=SERIAL_DEFAULT)
+    parser.add_argument('dt', type=datetime.datetime.fromisoformat)
+    args = parser.parse_args()
+
+    states: States = {
+        **clock(args.dt, 'INITIAL', 'END'),
+        'END': ((always_matches, bye, 'UNREACHABLE'),),
+    }
+
+    with serial.Serial(args.serial, 9600) as ser:
+        run(vid=make_vid(), ser=ser, initial='INITIAL', states=states)
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

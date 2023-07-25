@@ -29,7 +29,6 @@ def main() -> int:
     args = parser.parse_args()
 
     require_tesseract()
-    vid = make_vid()
 
     pos0_matches = match_px(Point(y=169, x=372), Color(b=42, g=197, r=213))
     pos1_matches = match_px(Point(y=251, x=366), Color(b=47, g=189, r=220))
@@ -112,7 +111,7 @@ def main() -> int:
     }
 
     with serial.Serial(args.serial, 9600) as ser:
-        run(vid=vid, ser=ser, initial='INITIAL', states=states)
+        run(vid=make_vid(), ser=ser, initial='INITIAL', states=states)
 
 
 if __name__ == '__main__':

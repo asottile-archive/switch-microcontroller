@@ -55,8 +55,6 @@ def main() -> int:
     parser.add_argument('--quiet', action='store_true')
     args = parser.parse_args()
 
-    vid = make_vid()
-
     game_crash = GameCrash()
     reset_time = time.time() - 1
 
@@ -114,7 +112,7 @@ def main() -> int:
     }
 
     with serial.Serial(args.serial, 9600) as ser:
-        run(vid=vid, ser=ser, initial='INITIAL', states=states)
+        run(vid=make_vid(), ser=ser, initial='INITIAL', states=states)
 
 
 if __name__ == '__main__':

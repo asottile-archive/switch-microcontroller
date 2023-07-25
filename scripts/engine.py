@@ -248,7 +248,7 @@ def run(
         for k, v in states.items()
         for _, _, t in v
     }
-    unused = sorted(all_s - all_t)
+    unused = sorted(all_s - all_t - {initial})
     if unused:
         raise AssertionError(f'unused states: {", ".join(unused)}')
     missing = sorted(all_t - all_s - {'UNREACHABLE'})
