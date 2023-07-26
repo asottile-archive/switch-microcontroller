@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
-import itertools
+import collections
 import time
 
 import cv2
+import numpy
 import serial
 
 from scripts._alarm import alarm
@@ -29,34 +30,79 @@ from scripts.swsh._dialog_shiny_check import dialog
 from scripts.swsh._dialog_shiny_check import dialog_shiny_check
 
 
+class Mover:
+    def __init__(self) -> None:
+        self._t = 0.
+        self.todo: collections.deque[tuple[str, float]] = collections.deque()
+
+    def ended(self, frame: object) -> bool:
+        return time.monotonic() > self._t
+
+    def move(self, vid: cv2.VideoCapture, ser: serial.Serial) -> None:
+        try:
+            move, t = self.todo.popleft()
+        except IndexError:
+            self.todo.extend((s, .5) for s in 'w0a0s0d0')
+            move, t = self.todo.popleft()
+
+        ser.write(move.encode())
+        self._t = time.monotonic() + t
+
+    def reroute(self, moves: list[tuple[str, float]]) -> None:
+        print(f'reroute! {moves}')
+        self._t = -1.
+        self.todo.clear()
+        self.todo.extend(moves)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', default=SERIAL_DEFAULT)
     parser.add_argument('--quiet', action='store_true')
     args = parser.parse_args()
 
-    moves = itertools.cycle('wasd')
-
-    def next_move(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
-        Write(next(moves))(vid, ser)
-
-    move_end_t = 0.
-
-    def move_end(vid: object, ser: object) -> None:
-        nonlocal move_end_t
-        move_end_t = time.monotonic() + .4
-
-    def move_ended(frame: object) -> bool:
-        return time.monotonic() >= move_end_t
+    mover = Mover()
 
     timeout_t = 0.
 
     def timeout_set(vid: object, ser: object) -> None:
         nonlocal timeout_t
-        timeout_t = time.monotonic() + 15
+        timeout_t = time.monotonic() + 27
 
     def timeout(frame: object) -> bool:
         return time.monotonic() >= timeout_t
+
+    debounce_t = 0.
+
+    def detect_random(frame: numpy.ndarray) -> bool:
+        nonlocal debounce_t
+        nonlocal timeout_t
+
+        if time.monotonic() < debounce_t:
+            return False
+
+        h = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        m = cv2.inRange(h, (164, 100, 200), (180, 200, 255))
+        kernel = numpy.ones((12, 4), numpy.uint8)
+        m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, kernel)
+        contours, _ = cv2.findContours(
+            m, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE,
+        )
+        # player: Point(y=435, x=654)
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            y += h
+            if h / w >= 2 and h * w >= 80:
+                my = 'w' if y < 435 else 's'
+                dy = abs(435 - y) / 400
+                mx = 'a' if x < 655 else 'd'
+                dx = abs(655 - x) / 750
+                mover.reroute([(my, dy), (mx, dx)])
+                debounce_t = time.monotonic() + 1.5
+                timeout_t = max(timeout_t, time.monotonic() + 12)
+                return True
+
+        return False
 
     states: States = {
         **bootup('INITIAL', 'STARTUP'),
@@ -64,12 +110,13 @@ def main() -> int:
             (always_matches, do(), 'SET'),
         ),
         'SET': (
-            (always_matches, do(timeout_set, next_move, move_end), 'MOVE'),
+            (always_matches, do(timeout_set, mover.move), 'MOVE'),
         ),
         'MOVE': (
             (dialog, Write('0'), 'DIALOG'),
             (all_match(timeout, world), reset, 'INITIAL'),
-            (move_ended, do(next_move, move_end), 'MOVE'),
+            (mover.ended, mover.move, 'MOVE'),
+            (detect_random, mover.move, 'MOVE'),
         ),
         **dialog_shiny_check('DIALOG', 'RUN', 'ALARM'),
         'RUN': (
