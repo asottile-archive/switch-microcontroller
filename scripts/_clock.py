@@ -113,7 +113,7 @@ def clock(dt: datetime.datetime, name: str, end: str) -> States:
                 do(Press('A'), Wait(.1), Press('A'), Wait(.5), Press('H')),
                 end,
             ),
-            (always_matches, do(Press('s'), Wait(.1)), f'{name}_AM'),
+            (always_matches, do(Press('s'), Wait(.3)), f'{name}_AM'),
         ),
     }
 
