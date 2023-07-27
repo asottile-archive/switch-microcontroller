@@ -42,7 +42,7 @@ class Mover:
         try:
             move, t = self.todo.popleft()
         except IndexError:
-            self.todo.extend((s, .5) for s in 'w0a0s0d0')
+            self.todo.extend((s, .3) for s in 'ws')
             move, t = self.todo.popleft()
 
         ser.write(move.encode())
