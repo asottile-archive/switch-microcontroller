@@ -42,7 +42,7 @@ class Mover:
         try:
             move, t = self.todo.popleft()
         except IndexError:
-            self.todo.extend((s, .3) for s in 'ws')
+            self.todo.extend((s, .4) for s in 'ws')
             move, t = self.todo.popleft()
 
         ser.write(move.encode())
@@ -94,7 +94,7 @@ def main() -> int:
             y += h
             if h / w >= 2 and h * w >= 80:
                 my = 'w' if y < 435 else 's'
-                dy = abs(435 - y) / 400
+                dy = abs(435 - y) / 350
                 mx = 'a' if x < 655 else 'd'
                 dx = abs(655 - x) / 750
                 mover.reroute([(my, dy), (mx, dx)])
