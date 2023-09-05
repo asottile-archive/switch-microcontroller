@@ -11,6 +11,7 @@ from scripts.engine import always_matches
 from scripts.engine import bye
 from scripts.engine import do
 from scripts.engine import get_text
+from scripts.engine import getframe
 from scripts.engine import make_vid
 from scripts.engine import match_text
 from scripts.engine import Point
@@ -20,6 +21,46 @@ from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
 
+_TO_CLOCK = do(
+    Press('s'),
+    Press('d', duration=.55),
+    Press('A'), Wait(1),
+    Press('s', duration=1.3),
+    Press('A'), Wait(.75),
+    Press('s', duration=.7),
+    Press('A'), Wait(.75),
+)
+
+
+def current_dt(vid: cv2.VideoCapture, ser: serial.Serial) -> datetime.datetime:
+    _TO_CLOCK(vid, ser)
+
+    text = get_text(
+        getframe(vid),
+        Point(y=366, x=831),
+        Point(y=401, x=1052),
+        invert=False,
+    )
+    date, time, ampm = text.lower().replace('.', '').split()
+    month_s, day_s, year_s = date.split('/')
+    hour_s, minute_s = time.split(':')
+
+    hour = int(hour_s) % 12
+    if ampm == 'pm':
+        hour += 12
+
+    ret = datetime.datetime(
+        year=int(year_s),
+        month=int(month_s),
+        day=int(day_s),
+        hour=hour,
+        minute=int(minute_s),
+    )
+
+    do(Press('H'), Wait(1))(vid, ser)
+
+    return ret
+
 
 def clock(dt: datetime.datetime, name: str, end: str) -> States:
     def _state(tl: Point, br: Point, n: int, s: str, e: str) -> States:
@@ -27,7 +68,9 @@ def clock(dt: datetime.datetime, name: str, end: str) -> States:
 
         def eq_n(frame: numpy.ndarray) -> bool:
             nonlocal found_n
-            found_n = int(get_text(frame, tl, br, invert=False))
+            # ocr sometimes has problems with `07` as `O07`
+            n_s = get_text(frame, tl, br, invert=False).lstrip('O0') or '0'
+            found_n = int(n_s)
             return found_n == n
 
         def move(vid: cv2.VideoCapture, ser: serial.Serial) -> None:
@@ -52,17 +95,7 @@ def clock(dt: datetime.datetime, name: str, end: str) -> States:
         name: (
             (
                 always_matches,
-                do(
-                    Press('s'),
-                    Press('d', duration=.55),
-                    Press('A'), Wait(1),
-                    Press('s', duration=1.3),
-                    Press('A'), Wait(.75),
-                    Press('s', duration=.7),
-                    Press('A'), Wait(.75),
-                    Press('s'), Press('s'),
-                    Press('A'), Wait(.5),
-                ),
+                do(_TO_CLOCK, Press('s'), Press('s'), Press('A'), Wait(.5)),
                 f'{name}_MONTH',
             ),
         ),

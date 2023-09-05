@@ -2,23 +2,34 @@ from __future__ import annotations
 
 import time
 
-from scripts.engine import all_match
+import numpy
+
 from scripts.engine import always_matches
-from scripts.engine import Color
 from scripts.engine import do
-from scripts.engine import match_px_exact
 from scripts.engine import Point
 from scripts.engine import States
 
-dialog = all_match(
-    match_px_exact(Point(y=587, x=20), Color(b=48, g=48, r=48)),
-    match_px_exact(Point(y=672, x=1233), Color(b=48, g=48, r=48)),
-    match_px_exact(Point(y=683, x=1132), Color(b=59, g=59, r=59)),
-    match_px_exact(Point(y=587, x=107), Color(b=59, g=59, r=59)),
-)
+
+def dialog(frame: numpy.ndarray) -> bool:
+    tl1 = Point(y=587, x=22).norm(frame.shape)
+    br1 = Point(y=604, x=40).norm(frame.shape)
+
+    tl2 = Point(y=587, x=1183).norm(frame.shape)
+    br2 = Point(y=604, x=1200).norm(frame.shape)
+
+    return (
+        numpy.all(frame[tl1.y:br1.y, tl1.x:br1.x] == (48, 48, 48)) and
+        numpy.all(frame[tl2.y:br2.y, tl2.x:br2.x] == (59, 59, 59))
+    )
 
 
-def dialog_shiny_check(begin: str, end: str, alarm: str) -> States:
+def dialog_shiny_check(
+        begin: str,
+        end: str,
+        alarm: str,
+        *,
+        cutoff: float = 1.,
+) -> States:
     t0 = t1 = 0.
 
     def record_start(vid: object, ser: object) -> None:
@@ -33,17 +44,17 @@ def dialog_shiny_check(begin: str, end: str, alarm: str) -> States:
         print(f'delay: {t1 - t0:.3f}')
         if t1 - t0 >= 8:
             raise AssertionError('fuckup')
-        return t1 - t0 > 1
+        return t1 - t0 > cutoff
 
     return {
         begin: (
             (dialog, record_start, begin),
-            (always_matches, do(), 'SHINY_ANIMATION_END'),
+            (always_matches, do(), f'{begin}__SHINY_ANIMATION_END'),
         ),
-        'SHINY_ANIMATION_END': (
-            (dialog, record_end, 'SHINY_CHECK'),
+        f'{begin}__SHINY_ANIMATION_END': (
+            (dialog, record_end, f'{begin}__SHINY_CHECK'),
         ),
-        'SHINY_CHECK': (
+        f'{begin}__SHINY_CHECK': (
             (is_shiny, do(), alarm),
             (always_matches, do(), end),
         ),
