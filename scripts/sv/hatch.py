@@ -22,8 +22,8 @@ from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
 from scripts.engine import Write
+from scripts.sv._bootup import world
 from scripts.sv._move_box import move_box
-from scripts.sv._pixels import world_matches
 from scripts.sv._to_boxes import to_boxes
 
 
@@ -113,11 +113,11 @@ def main() -> int:
             (always_matches, do(Press('A'), Wait(1)), 'PICKUP_DROP'),
         ),
         'PICKUP_EXIT_BOX': (
-            (world_matches, do(), 'REORIENT_OPEN_MAP'),
+            (world, do(), 'REORIENT_OPEN_MAP'),
             (always_matches, do(Press('B'), Wait(1)), 'PICKUP_EXIT_BOX'),
         ),
         'REORIENT_OPEN_MAP': (
-            (world_matches, do(Press('Y'), Wait(5)), 'REORIENT_OPEN_MAP'),
+            (world, do(Press('Y'), Wait(5)), 'REORIENT_OPEN_MAP'),
             (always_matches, do(), 'REORIENT_FIND_ZERO'),
         ),
         'REORIENT_FIND_ZERO': (
@@ -152,7 +152,7 @@ def main() -> int:
         ),
         'REORIENT_MOVE': (
             (
-                world_matches,
+                world,
                 do(
                     Wait(1),
                     Press('+'), Wait(1),

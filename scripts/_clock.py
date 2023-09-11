@@ -69,7 +69,7 @@ def clock(dt: datetime.datetime, name: str, end: str) -> States:
         def eq_n(frame: numpy.ndarray) -> bool:
             nonlocal found_n
             # ocr sometimes has problems with `07` as `O07`
-            n_s = get_text(frame, tl, br, invert=False).lstrip('O0') or '0'
+            n_s = get_text(frame, tl, br, invert=False).lstrip('O0o') or '0'
             found_n = int(n_s)
             return found_n == n
 

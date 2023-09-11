@@ -6,6 +6,7 @@ import cv2
 import serial
 
 from scripts.engine import always_matches
+from scripts.engine import bye
 from scripts.engine import do
 from scripts.engine import make_vid
 from scripts.engine import Press
@@ -55,9 +56,6 @@ def main() -> int:
 
     def done(frame: object) -> bool:
         return box == args.boxes
-
-    def bye(vid: object, ser: object) -> None:
-        raise SystemExit(0)
 
     states: States = {
         **to_boxes('INITIAL', 'RELEASE_BOX'),

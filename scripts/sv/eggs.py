@@ -8,6 +8,7 @@ import serial
 from scripts.engine import all_match
 from scripts.engine import always_matches
 from scripts.engine import any_match
+from scripts.engine import bye
 from scripts.engine import Color
 from scripts.engine import do
 from scripts.engine import make_vid
@@ -46,9 +47,6 @@ def main() -> int:
 
     def are_we_done(frame: object) -> bool:
         return egg_count >= args.boxes * 30
-
-    def bye(vid: object, ser: object) -> None:
-        raise SystemExit
 
     states = {
         'INITIAL': (

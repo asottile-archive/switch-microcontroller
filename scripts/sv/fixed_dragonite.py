@@ -13,14 +13,13 @@ from scripts._reset import reset
 from scripts.engine import always_matches
 from scripts.engine import do
 from scripts.engine import make_vid
-from scripts.engine import match_text
 from scripts.engine import Point
 from scripts.engine import Press
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
-from scripts.sv._pixels import world_matches
+from scripts.sv._bootup import bootup
 
 
 def crop_count(crop: numpy.ndarray, *, store: bool = False) -> int:
@@ -71,32 +70,9 @@ def main() -> int:
     args = parser.parse_args()
 
     states: States = {
-        'INITIAL': (
-            (
-                match_text(
-                    'Start',
-                    Point(y=669, x=1158),
-                    Point(y=700, x=1228),
-                    invert=False,
-                ),
-                do(Press('A'), Wait(1)),
-                'START',
-            ),
-        ),
-        'START': (
-            (
-                match_text(
-                    'PRESS',
-                    Point(y=489, x=802),
-                    Point(y=530, x=898),
-                    invert=True,
-                ),
-                do(Wait(2), Press('A'), Wait(1)),
-                'WORLD',
-            ),
-        ),
+        **bootup('INITIAL', 'WORLD', 'INITIAL'),
         'WORLD': (
-            (world_matches, Wait(7.25), 'CHECK'),
+            (always_matches, Wait(7.25), 'CHECK'),
         ),
         'CHECK': (
             (nonshiny_matches, reset, 'INITIAL'),

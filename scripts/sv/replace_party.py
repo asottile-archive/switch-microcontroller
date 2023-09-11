@@ -18,8 +18,8 @@ from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
+from scripts.sv._bootup import world
 from scripts.sv._move_box import move_box
-from scripts.sv._pixels import world_matches
 from scripts.sv._to_boxes import to_boxes
 
 
@@ -105,7 +105,7 @@ def main() -> int:
         ),
         **move_box('BOX_RIGHT', 'OUT', 'R'),
         'OUT': (
-            (world_matches, bye, 'INVALID'),
+            (world, bye, 'INVALID'),
             (always_matches, do(Press('B'), Wait(.5)), 'OUT'),
         ),
     }

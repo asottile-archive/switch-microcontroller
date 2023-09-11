@@ -12,19 +12,17 @@ import serial
 
 from scripts._alarm import alarm
 from scripts._clock import clock
-from scripts._game_crash import GameCrash
 from scripts._reset import reset
 from scripts.engine import always_matches
 from scripts.engine import do
 from scripts.engine import make_vid
-from scripts.engine import match_text
 from scripts.engine import Point
 from scripts.engine import Press
 from scripts.engine import run
 from scripts.engine import SERIAL_DEFAULT
 from scripts.engine import States
 from scripts.engine import Wait
-from scripts.sv._pixels import world_matches
+from scripts.sv._bootup import bootup
 
 
 def nontera_matches(frame: numpy.ndarray) -> bool:
@@ -55,15 +53,14 @@ def main() -> int:
     parser.add_argument('--quiet', action='store_true')
     args = parser.parse_args()
 
-    game_crash = GameCrash()
-    reset_time = time.time() - 1
+    reset_time = time.monotonic() - 1
 
     def needs_clock(frame: object) -> bool:
-        return time.time() >= reset_time
+        return time.monotonic() >= reset_time
 
     def clock_set(vid: object, ser: object) -> None:
         nonlocal reset_time
-        reset_time = time.time() + 20 * 60
+        reset_time = time.monotonic() + 20 * 60
 
     states: States = {
         'INITIAL': (
@@ -71,34 +68,12 @@ def main() -> int:
             (always_matches, do(), 'BEGIN'),
         ),
         **clock(datetime.datetime(2023, 3, 2, 0, 25), 'CLOCK', 'CLOCK_DONE'),
-        'CLOCK_DONE': ((always_matches, clock_set, 'BEGIN'),),
-        'BEGIN': (
-            (
-                match_text(
-                    'Start',
-                    Point(y=669, x=1158),
-                    Point(y=700, x=1228),
-                    invert=False,
-                ),
-                do(Press('A'), Wait(1)),
-                'START',
-            ),
+        'CLOCK_DONE': (
+            (always_matches, clock_set, 'BEGIN'),
         ),
-        'START': (
-            (
-                match_text(
-                    'PRESS',
-                    Point(y=489, x=802),
-                    Point(y=530, x=898),
-                    invert=True,
-                ),
-                do(Wait(2), Press('A'), Wait(1), game_crash.record),
-                'WORLD',
-            ),
-        ),
+        **bootup('BEGIN', 'WORLD', 'INITIAL'),
         'WORLD': (
-            (world_matches, Wait(.2), 'CHECK_TERA'),
-            (game_crash.check, do(Press('A'), Wait(1)), 'INITIAL'),
+            (always_matches, Wait(.2), 'CHECK_TERA'),
         ),
         'CHECK_TERA': (
             (nontera_matches, reset, 'INITIAL'),

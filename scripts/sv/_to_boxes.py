@@ -9,7 +9,7 @@ from scripts.engine import Point
 from scripts.engine import Press
 from scripts.engine import States
 from scripts.engine import Wait
-from scripts.sv._pixels import world_matches
+from scripts.sv._bootup import world
 
 
 def to_boxes(start: str, end: str) -> States:
@@ -17,7 +17,7 @@ def to_boxes(start: str, end: str) -> States:
 
     return {
         start: (
-            (world_matches, do(Press('X'), Wait(1)), start),
+            (world, do(Press('X'), Wait(1)), start),
             (
                 match_text(
                     'MAIN MENU',
