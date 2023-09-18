@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import json
-import os
 
 import cv2
 import numpy
@@ -23,51 +21,75 @@ from scripts.engine import Wait
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--serial', default=SERIAL_DEFAULT)
-    parser.add_argument('--save', required=True)
     args = parser.parse_args()
 
     vid = make_vid()
 
-    os.makedirs(args.save, exist_ok=True)
-    save_json = os.path.join(args.save, 't.json')
-    if os.path.exists(save_json):
-        with open(save_json) as f:
-            contents = json.load(f)
-        tl = Point(*contents['tl'])
-        br = Point(*contents['br'])
-    else:
-        print('select the area to search by drawing a box')
-        tl, br = request_box(vid)
-        with open(save_json, 'w') as f:
-            json.dump({'tl': tl, 'br': br}, f)
+    print('select the area to search by drawing a box')
+    tl, br = request_box(vid)
 
     i = 0
-    seen = [
-        cv2.imread(os.path.join(args.save, fname))
-        for fname in os.listdir(args.save)
-        if fname.endswith('.png')
-    ]
+    masks = 0
+    clean: numpy.ndarray | None = None
+    mask = numpy.zeros((br.y - tl.y, br.x - tl.x), dtype=numpy.uint8)
+
+    def _is_clean() -> bool:
+        while True:
+            try:
+                s = input('clean? (y/n) ').lower()
+            except (EOFError, KeyboardInterrupt):
+                print('\nbye!')
+                raise SystemExit()
+            else:
+                if s not in 'yn':
+                    print(f'say what? {s=}')
+                else:
+                    return s == 'y'
 
     def check(frame: numpy.ndarray) -> bool:
-        nonlocal i
+        nonlocal clean, i, masks, mask
         i += 1
-        print(f' (seen={len(seen)}, n={i}) '.center(79, '='))
+        print(f' (masks={masks}, n={i}) '.center(79, '='))
+
         crop = frame[tl.y:br.y, tl.x:br.x]
-        for img in seen:
-            if numpy.array_equal(img, crop):
-                print('already seen!')
-                return True
+
+        if clean is None:
+            do(Press('!'), Wait(.1), Press('.'))(vid, ser)
+            if _is_clean():
+                clean = crop
+            return True
+
+        crop = cv2.bitwise_and(crop, crop, mask=cv2.bitwise_not(mask))
+
+        cv2.imwrite('clean.png', clean)
+        cv2.imwrite('cand.png', crop)
+
+        diff = cv2.absdiff(clean, crop)
+        m = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+        _, m = cv2.threshold(m, 12, 255, cv2.THRESH_BINARY)
+
+        if not numpy.count_nonzero(m):
+            print('already seen!')
+            return True
 
         do(Press('!'), Wait(.1), Press('.'))(vid, ser)
-        try:
-            input('is this the right raid? (enter to skip, ^D to exit)')
-        except (EOFError, KeyboardInterrupt):
-            print('\nbye!')
-            raise SystemExit(0)
-        else:
-            seen.append(crop)
-            cv2.imwrite(os.path.join(args.save, f'{len(seen)}.png'), crop)
-            return True
+        if _is_clean():
+            if numpy.count_nonzero(m) in {0, mask.size}:
+                print('ignoring mask (whole image?')
+                return True
+
+            masks += 1
+
+            clean = cv2.bitwise_and(clean, clean, mask=cv2.bitwise_not(m))
+            mask = cv2.bitwise_or(mask, m)
+
+            kernel = numpy.ones((2, 2), numpy.uint8)
+            m = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+
+            clean = cv2.bitwise_and(clean, clean, mask=cv2.bitwise_not(m))
+            mask = cv2.bitwise_or(mask, m)
+
+        return True
 
     states: States = {
         'INITIAL': (
