@@ -37,8 +37,8 @@ def current_dt(vid: cv2.VideoCapture, ser: serial.Serial) -> datetime.datetime:
 
     text = get_text(
         getframe(vid),
-        Point(y=366, x=831),
-        Point(y=401, x=1052),
+        Point(y=370, x=815),
+        Point(y=401, x=1048),
         invert=False,
     )
     date, time, ampm = text.lower().replace('.', '').split()
