@@ -153,14 +153,19 @@ def main() -> int:
 
         pokemon = text.removesuffix(' appeared!').lower()
 
+    def is_2_75(frame: object) -> bool:
+        return pokemon in {'dragapult'}
+
     def is_2_5(frame: object) -> bool:
         return pokemon in {'dusknoir', 'togekiss'}
 
     def is_2_0(frame: object) -> bool:
-        return pokemon in {'aromatisse'}
+        return pokemon in {'aromatisse', 'dottler', 'drampa'}
 
     def is_1_75(frame: object) -> bool:
-        return pokemon in {'ribombee', 'shiinotic'}
+        return pokemon in {
+            'ribombee', 'shiinotic', 'golisopod', 'sliggoo', 'drakloak',
+        }
 
     states: States = {
         'INITIAL': (
@@ -198,11 +203,13 @@ def main() -> int:
             (dialog, record_pokemon, 'CHOOSE_DIALOG'),
         ),
         'CHOOSE_DIALOG': (
+            (is_2_75, do(), 'DIALOG_2_75'),
             (is_2_5, do(), 'DIALOG_2_5'),
             (is_2_0, do(), 'DIALOG_2_0'),
             (is_1_75, do(), 'DIALOG_1_75'),
             (always_matches, do(), 'DIALOG'),
         ),
+        **dialog_shiny_check('DIALOG_2_75', 'RESET', 'ALARM', cutoff=2.75),
         **dialog_shiny_check('DIALOG_2_5', 'RESET', 'ALARM', cutoff=2.5),
         **dialog_shiny_check('DIALOG_2_0', 'RESET', 'ALARM', cutoff=2.0),
         **dialog_shiny_check('DIALOG_1_75', 'RESET', 'ALARM', cutoff=1.75),
